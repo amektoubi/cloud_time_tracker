@@ -628,3 +628,69 @@ This chapter defines the quality attributes, performance constraints, and techni
 * **NFR-COMP-02 (Cookie Policy):** The Web Application must display a cookie consent banner if tracking or non-essential cookies are utilized.
 
 ---
+# Chapter 10: Data Requirements
+
+## 10.1 Overview
+This chapter specifies the logical data model, data persistence rules, and the standard formats required for data exchange between the Client and Server. It serves as a guide for database design and API development.
+
+## 10.2 Data Entities (Conceptual Schema)
+**ID:** DATA-MODEL
+The system shall maintain the following core data entities and their relationships.
+
+### 10.2.1 User
+Represents an identity within the system.
+*   **Attributes:** `User_ID` (PK), `Email`, `Password_Hash`, `Role` (Standard/Admin), `Created_At`, `Last_Login`, `Settings_JSON` (Preferences).
+*   **Cardinality:** A User can own multiple Categories, Tags, and Records.
+
+### 10.2.2 Category
+A classification bucket for time records.
+*   **Attributes:** `Category_ID` (PK), `User_ID` (FK), `Name`, `Hex_Color`, `Icon_ID`, `Is_Archived`.
+*   **Constraints:** `User_ID` + `Name` must be unique (A user cannot have two "Work" categories).
+
+### 10.2.3 Tag
+A granular label.
+*   **Attributes:** `Tag_ID` (PK), `User_ID` (FK), `Name`.
+
+### 10.2.4 Time Record
+A completed block of tracked time.
+*   **Attributes:** `Record_ID` (PK), `User_ID` (FK), `Category_ID` (FK), `Start_Timestamp`, `End_Timestamp`, `Duration` (Computed), `Note` (Text).
+*   **Relationships:** Many-to-Many relationship with **Tag**.
+
+### 10.2.5 Running Timer
+Represents the currently active activity.
+*   **Attributes:** `Timer_ID` (PK), `User_ID` (FK), `Category_ID` (FK), `Start_Timestamp`.
+*   **Constraints:** A User should ideally have only one active Running Timer at a time (enforced by application logic).
+
+## 10.3 Data Integrity and Constraints
+**ID:** DATA-INT
+The database must enforce strict rules to maintain data quality.
+
+*   **DATA-INT-01 (Referential Integrity):**
+    *   If a **User** is deleted, all associated Categories, Tags, and Records must be deleted (Cascade Delete).
+    *   If a **Category** is deleted, the system logic defined in **FR-TAX-01.4** applies (User must choose to delete records or reassign them).
+*   **DATA-INT-02 (Timestamps):**
+    *   All timestamps stored in the database must be in **UTC**.
+    *   Conversion to the user's Local Time Zone must happen at the Client (Frontend) layer.
+*   **DATA-INT-03 (Precision):** Time records should store precision down to the **second** or **millisecond**, depending on the database capability.
+
+## 10.4 Data Retention and Archiving
+**ID:** DATA-RET
+
+*   **DATA-RET-01:** User data shall be retained indefinitely as long as the account is active.
+*   **DATA-RET-02:** Upon the initiation of a "Hard Delete" (Account Deletion), data must be purged from the live database immediately.
+*   **DATA-RET-03:** Backups of the database shall be retained for a specific period (e.g., 30 days) for disaster recovery purposes.
+
+## 10.5 API Interface Standards
+**ID:** DATA-API
+The Client-Server communication shall adhere to strict formatting standards.
+
+*   **DATA-API-01 (Format):** All API responses shall be in **JSON** (JavaScript Object Notation) format.
+*   **DATA-API-02 (Date Format):** All dates and times transmitted via API must follow the **ISO 8601** standard (e.g., `2023-10-27T10:00:00Z`).
+*   **DATA-API-03 (Status Codes):** The API shall return appropriate HTTP Status Codes:
+    *   `200 OK`: Successful request.
+    *   `201 Created`: Successful creation of a resource.
+    *   `400 Bad Request`: Validation failure (e.g., Missing email).
+    *   `401 Unauthorized`: Missing or invalid authentication token.
+    *   `403 Forbidden`: Authenticated, but lacking permission (e.g., Standard User trying to delete another user).
+    *   `404 Not Found`: Resource does not exist.
+    *   `500 Internal Server Error`: Unhandled server exception.
