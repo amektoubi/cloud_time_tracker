@@ -1,65 +1,83 @@
 # Functional Requirements Document: Structure Overview
 
 ## Chapter 1: Introduction
-
-**1.1 Purpose:** Defines the objective of this document, which is to specify the behavioral and data requirements for the "Cloud Time Tracker" system. **1.2 Scope:** Delineates what the system will and will not do. It establishes the boundary between the web/mobile clients and the backend services. **1.3 Definitions and Acronyms:** A glossary of technical terms (e.g., RBAC, JWT, CRUD, Timer, Record) used throughout the document. **1.4 References:** Lists external dependencies, including the original "Simple Time Tracker" codebase (as a functional reference) and UI design systems.
+**1.1 Purpose:** Defines the objective of this document, which is to specify the behavioral and data requirements for the "Cloud Time Tracker" system.
+**1.2 Scope:** Delineates what the system will and will not do. It establishes the boundary between the web/mobile clients and the backend services.
+**1.3 Definitions and Acronyms:** A glossary of technical terms (e.g., RBAC, JWT, CRUD, Timer, Record) used throughout the document.
+**1.4 References:** Lists external dependencies, including the original "Simple Time Tracker" codebase (as a functional reference) and UI design systems.
 
 ## Chapter 2: Executive Summary
-
-**2.1 Vision:** A high-level description of the product as a cross-platform (Web & Mobile) productivity tool that brings granular time tracking to the cloud. **2.2 Key Business Objectives:**
-
-* Migrate local-only features to a synchronized cloud environment.  
-* Enable multi-device usage for a single user.  
-* Provide administrative oversight via role management. **2.3 Target Audience:** Productivity enthusiasts, freelancers, and system administrators.
+**2.1 Vision:** A high-level description of the product as a cross-platform (Web & Mobile) productivity tool that brings granular time tracking to the cloud.
+**2.2 Key Business Objectives:**
+*   Migrate local-only features to a synchronized cloud environment.
+*   Enable multi-device usage for a single user.
+*   Provide administrative oversight via role management.
+**2.3 Target Audience:** Productivity enthusiasts, freelancers, and system administrators.
 
 ## Chapter 3: System Architecture and Actors
-
 **3.1 High-Level Architecture:** Describes the client-server model.
-
-* **Clients:** Mobile App (iOS/Android), Web App (React/Vue/Angular).  
-* **Server:** RESTful/GraphQL API, Relational Database. **3.2 User Roles (Actors):**  
-* **Guest:** Unauthenticated user (limited to landing page/login).  
-* **Standard User:** Registered user with access to their own private time data.  
-* **Administrator:** Elevated user with access to system health, user management, and global configurations. **3.3 Data Isolation:** Defines the requirement that Standard Users cannot access other users' records (Multi-tenancy logic).
+*   **Clients:** Mobile App (iOS/Android), Web App (React/Vue/Angular).
+*   **Server:** RESTful/GraphQL API, Relational Database.
+**3.2 User Roles (Actors):**
+*   **Guest:** Unauthenticated user (limited to landing page/login).
+*   **Standard User:** Registered user with access to their own private time data.
+*   **Administrator:** Elevated user with access to system health, user management, and global configurations.
+**3.3 Data Isolation:** Defines the requirement that Standard Users cannot access other users' records (Multi-tenancy logic).
 
 ## Chapter 4: Module 1 — Identity and Access Management (IAM)
-
-*This chapter details the new requirements not present in the original clone.* **4.1 Registration:** Requirements for sign-up (Email/Password, OAuth providers). **4.2 Authentication:** Login processes, session management (Token/JWT), and "Remember Me" functionality. **4.3 Password Management:** Password reset flows (email links) and change password functionality. **4.4 Role Management (RBAC):** Logic for assigning roles and checking permissions (e.g., Only Admins can view the User List). **4.5 Account Deletion:** GDPR-compliant "Right to be forgotten" functionality.
+*This chapter details the new requirements not present in the original clone.*
+**4.1 Registration:** Requirements for sign-up (Email/Password, OAuth providers).
+**4.2 Authentication:** Login processes, session management (Token/JWT), and "Remember Me" functionality.
+**4.3 Password Management:** Password reset flows (email links) and change password functionality.
+**4.4 Role Management (RBAC):** Logic for assigning roles and checking permissions (e.g., Only Admins can view the User List).
+**4.5 Account Deletion:** GDPR-compliant "Right to be forgotten" functionality.
 
 ## Chapter 5: Module 2 — Taxonomy and Configuration
-
-**5.1 Categories:** Requirements for creating, editing, and deleting activity categories (e.g., "Work," "Sleep"). **5.2 Visualization Attributes:** Assigning colors (Hex codes) and icons (Emoji/Vector) to categories. **5.3 Tags:** Requirements for creating sub-labels (Tags) and associating them with categories. **5.4 Goals:** Setting target durations for specific categories (e.g., "Work 8 hours/day"). **5.5 Complex Rules:** Logic for automated categorization or validation rules based on time or context.
+**5.1 Categories:** Requirements for creating, editing, and deleting activity categories (e.g., "Work," "Sleep").
+**5.2 Visualization Attributes:** Assigning colors (Hex codes) and icons (Emoji/Vector) to categories.
+**5.3 Tags:** Requirements for creating sub-labels (Tags) and associating them with categories.
+**5.4 Goals:** Setting target durations for specific categories (e.g., "Work 8 hours/day").
+**5.5 Complex Rules:** Logic for automated categorization or validation rules based on time or context.
 
 ## Chapter 6: Module 3 — Time Tracking Core
-
 **6.1 Running Timers:**
-
-* Start/Stop mechanics.  
-* Handling multiple simultaneous timers (if supported) or enforcing single active timer constraints.  
-* Notification triggers when a timer is running. **6.2 Manual Entry:** Creating past records by selecting start time, end time, and category. **6.3 Record Manipulation:**  
-* Editing duration, timestamps, and assigned tags of existing records.  
-* Merging two overlapping or adjacent records. **6.4 CSV Export:** Generating downloadable reports of time data.
+*   Start/Stop mechanics.
+*   Handling multiple simultaneous timers (if supported) or enforcing single active timer constraints.
+*   Notification triggers when a timer is running.
+**6.2 Manual Entry:** Creating past records by selecting start time, end time, and category.
+**6.3 Record Manipulation:**
+*   Editing duration, timestamps, and assigned tags of existing records.
+*   Merging two overlapping or adjacent records.
+**6.4 CSV Export:** Generating downloadable reports of time data.
 
 ## Chapter 7: Module 4 — Analytics and Visualization
-
-**7.1 Dashboard:** The landing view summarizing the current day's activity. **7.2 Statistical Charts:**
-
-* **Pie Charts:** Distribution of time per category/tag.  
-* **Bar Charts:** Comparison of duration over days/weeks/months. **7.3 Filtering:** Requirements for filtering data by custom date ranges (e.g., "Last 7 days") and specific categories. **7.4 Timeline View:** A linear visualization of the day's records (Chronological list).
+**7.1 Dashboard:** The landing view summarizing the current day's activity.
+**7.2 Statistical Charts:**
+*   **Pie Charts:** Distribution of time per category/tag.
+*   **Bar Charts:** Comparison of duration over days/weeks/months.
+**7.3 Filtering:** Requirements for filtering data by custom date ranges (e.g., "Last 7 days") and specific categories.
+**7.4 Timeline View:** A linear visualization of the day's records (Chronological list).
 
 ## Chapter 8: Module 5 — Application Settings and Synchronization
-
-**8.1 Interface Settings:** Dark/Light mode toggles, Language selection (Localization). **8.2 Notification Settings:** Configuring push notifications for timer reminders or goal achievements. **8.3 Synchronization Logic:** Requirements for conflict resolution when data changes on Mobile and Web simultaneously (e.g., "Last Write Wins").
+**8.1 Interface Settings:** Dark/Light mode toggles, Language selection (Localization).
+**8.2 Notification Settings:** Configuring push notifications for timer reminders or goal achievements.
+**8.3 Synchronization Logic:** Requirements for conflict resolution when data changes on Mobile and Web simultaneously (e.g., "Last Write Wins").
 
 ## Chapter 9: Non-Functional Requirements (NFR)
-
-**9.1 Security:** Data encryption in transit (HTTPS) and at rest, password hashing standards (e.g., Argon2/Bcrypt). **9.2 Performance:** API response time limits (e.g., \<200ms) and app load times. **9.3 Scalability:** Ability to support concurrent users. **9.4 Availability:** Uptime requirements (e.g., 99.9%).
+**9.1 Security:** Data encryption in transit (HTTPS) and at rest, password hashing standards (e.g., Argon2/Bcrypt).
+**9.2 Performance:** API response time limits (e.g., <200ms) and app load times.
+**9.3 Scalability:** Ability to support concurrent users.
+**9.4 Availability:** Uptime requirements (e.g., 99.9%).
 
 ## Chapter 10: Data Requirements
+**10.1 Data Retention:** How long data is stored.
+**10.2 Database Schema Constraints:** Integrity rules (e.g., A Record must belong to a Category).
+**10.3 API Contracts:** General requirements for JSON structure and error handling codes.
 
-**10.1 Data Retention:** How long data is stored. **10.2 Database Schema Constraints:** Integrity rules (e.g., A Record must belong to a Category). **10.3 API Contracts:** General requirements for JSON structure and error handling codes.
+***
 
-Here is **Chapter 1: Introduction** of the Functional Requirements Document.
+**Instruction:**
+If you agree with this structure, we will proceed to generate **Chapter 1: Introduction** and **Chapter 2: Executive Summary** in detail.
 
 ---
 
