@@ -299,33 +299,34 @@ graph LR
 
     subgraph User Devices
 
-        A\[User: Web Browser\]
+        A[User: Web Browser]
 
-        B\[User: iOS Device\]
+        B[User: iOS Device]
 
-        C\[User: Android Device\]
+        C[User: Android Device]
 
     end
 
     subgraph Self-Hosted Environment
 
-        D\[Time Tracker System\]
+        D[Time Tracker System]
 
     end
 
-    E\[User's Own Server\<br\>Raspberry Pi, VPS, etc.\]
+    E[User's Own Server<br>Raspberry Pi, VPS, etc.]
 
-    A \--\>|HTTPS / WebSocket| D
+    A -->|HTTPS / WebSocket| D
 
-    B \--\>|HTTPS / WebSocket| D
+    B -->|HTTPS / WebSocket| D
 
-    C \--\>|HTTPS / WebSocket| D
+    C -->|HTTPS / WebSocket| D
 
-    D \--\> E
+    D --> E
 
-    style D fill:\#4CAF50,stroke:\#388E3C,color:white
+    style D fill:#4CAF50,stroke:#388E3C,color:white
 
-    style E fill:\#2196F3,stroke:\#0D47A1,color:white
+    style E fill:#2196F3,stroke:#0D47A1,color:white
+
 
 ```
 **Actors**:
@@ -342,123 +343,123 @@ graph TD
 
     subgraph "Web Client"
 
-        F1\[React Frontend\<br\>Vite \+ Zustand \+ Bootstrap\]
+        F1[React Frontend<br>Vite + Zustand + Bootstrap]
 
-        G1\[Local DB: sql.js\]
+        G1[Local DB: sql.js]
 
-        H1\[Sync Engine\<br\>TypeScript\]
+        H1[Sync Engine<br>TypeScript]
 
-        I1\[WebSocket Client\<br\>Optional\]
+        I1[WebSocket Client<br>Optional]
 
-        J1\[GlitchTip Web SDK\<br\>JS Error Reporting\]
+        J1[GlitchTip Web SDK<br>JS Error Reporting]
 
     end
 
     subgraph "Mobile Clients (iOS/Android)"
 
-        F2\[React Frontend\<br\>Vite \+ Zustand \+ Bootstrap\]
+        F2[React Frontend<br>Vite + Zustand + Bootstrap]
 
-        G2\[Local DB: @capacitor/sqlite\]
+        G2[Local DB: @capacitor/sqlite]
 
-        H2\[Sync Engine\<br\>TypeScript \+ Background Task\]
+        H2[Sync Engine<br>TypeScript + Background Task]
 
-        I2\[WebSocket Client\<br\>Optional\]
+        I2[WebSocket Client<br>Optional]
 
-        J2\[GlitchTip Mobile SDK\<br\>JS \+ Native Crash Reporting\]
+        J2[GlitchTip Mobile SDK<br>JS + Native Crash Reporting]
 
     end
 
     subgraph "Self-Hosted Server"
 
-        K\[HAProxy\<br\>TLS Termination \+ Rate Limiting\]
+        K[HAProxy<br>TLS Termination + Rate Limiting]
 
-        L\[Quarkus Backend\<br\>REST API \+ WebSocket Server\]
+        L[Quarkus Backend<br>REST API + WebSocket Server]
 
-        M\[PostgreSQL / SQLite\<br\>Persistent Storage\]
+        M[PostgreSQL / SQLite<br>Persistent Storage]
 
-        N\[GlitchTip Server\<br\>Unified Error Aggregation\]
+        N[GlitchTip Server<br>Unified Error Aggregation]
 
-        O\[Coroot Agent\<br\>Monitoring & Logs\]
+        O[Coroot Agent<br>Monitoring & Logs]
 
     end
 
     %% Web flows
 
-    F1 \--\>|Read/Write| G1
+    F1 -->|Read/Write| G1
 
-    F1 \--\>|Enqueue| H1
+    F1 -->|Enqueue| H1
 
-    H1 \--\>|HTTPS Sync| K
+    H1 -->|HTTPS Sync| K
 
-    I1 \--\>|WebSocket| K
+    I1 -->|WebSocket| K
 
-    F1 \--\>|Report Errors| J1
+    F1 -->|Report Errors| J1
 
-    J1 \--\>|Send to| N
+    J1 -->|Send to| N
 
     %% Mobile flows
 
-    F2 \--\>|Read/Write| G2
+    F2 -->|Read/Write| G2
 
-    F2 \--\>|Enqueue| H2
+    F2 -->|Enqueue| H2
 
-    H2 \--\>|HTTPS Sync| K
+    H2 -->|HTTPS Sync| K
 
-    I2 \--\>|WebSocket| K
+    I2 -->|WebSocket| K
 
-    F2 \--\>|Report JS Errors| J2
+    F2 -->|Report JS Errors| J2
 
-    J2 \--\>|Report Native Crashes| J2
+    J2 -->|Report Native Crashes| J2
 
-    J2 \--\>|Send to| N
+    J2 -->|Send to| N
 
     %% Server flows
 
-    K \--\>|Route| L
+    K -->|Route| L
 
-    L \--\> M
+    L --> M
 
-    L \--\>|Report Backend Errors| N
+    L -->|Report Backend Errors| N
 
-    L \--\>|Metrics/Logs| O
+    L -->|Metrics/Logs| O
 
-    H1 \--\>|Poll for Changes| L
+    H1 -->|Poll for Changes| L
 
-    H2 \--\>|Poll for Changes| L
+    H2 -->|Poll for Changes| L
 
-    I1 \--\>|Receive 'sync\_required'| L
+    I1 -->|Receive 'sync_required'| L
 
-    I2 \--\>|Receive 'sync\_required'| L
+    I2 -->|Receive 'sync_required'| L
 
-    style F1 fill:\#FFC107,stroke:\#FF8F00
+    style F1 fill:#FFC107,stroke:#FF8F00
 
-    style G1 fill:\#00BCD4,stroke:\#00838F
+    style G1 fill:#00BCD4,stroke:#00838F
 
-    style H1 fill:\#9C27B0,stroke:\#6A0080,color:white
+    style H1 fill:#9C27B0,stroke:#6A0080,color:white
 
-    style I1 fill:\#673AB7,stroke:\#311B92,color:white
+    style I1 fill:#673AB7,stroke:#311B92,color:white
 
-    style J1 fill:\#F44336,stroke:\#D32F2F,color:white
+    style J1 fill:#F44336,stroke:#D32F2F,color:white
 
-    style F2 fill:\#FFC107,stroke:\#FF8F00
+    style F2 fill:#FFC107,stroke:#FF8F00
 
-    style G2 fill:\#00BCD4,stroke:\#00838F
+    style G2 fill:#00BCD4,stroke:#00838F
 
-    style H2 fill:\#9C27B0,stroke:\#6A0080,color:white
+    style H2 fill:#9C27B0,stroke:#6A0080,color:white
 
-    style I2 fill:\#673AB7,stroke:\#311B92,color:white
+    style I2 fill:#673AB7,stroke:#311B92,color:white
 
-    style J2 fill:\#F44336,stroke:\#D32F2F,color:white
+    style J2 fill:#F44336,stroke:#D32F2F,color:white
 
-    style K fill:\#E91E63,stroke:\#AD1457,color:white
+    style K fill:#E91E63,stroke:#AD1457,color:white
 
-    style L fill:\#4CAF50,stroke:\#388E3C,color:white
+    style L fill:#4CAF50,stroke:#388E3C,color:white
 
-    style M fill:\#FF9800,stroke:\#E65100
+    style M fill:#FF9800,stroke:#E65100
 
-    style N fill:\#F44336,stroke:\#D32F2F,color:white
+    style N fill:#F44336,stroke:#D32F2F,color:white
 
-    style O fill:\#2196F3,stroke:\#0D47A1,color:white
+    style O fill:#2196F3,stroke:#0D47A1,color:white
 
 ```
 **Key Distinctions**:
@@ -639,125 +640,126 @@ The data layer provides a consistent abstraction over two database engines, sele
 
 graph TD
 
-    subgraph "Client (React \+ Capacitor)"
+    subgraph "Client (React + Capacitor)"
 
-        A\[Zustand Store\]
+        A[Zustand Store]
 
-        B\[UI Shell\<br\>React \+ Bootstrap\]
+        B[UI Shell<br>React + Bootstrap]
 
-        C\[Local Data Access\<br\>SQLite Abstraction\]
+        C[Local Data Access<br>SQLite Abstraction]
 
-        D\[Sync Engine\]
+        D[Sync Engine]
 
-        E\[WebSocket Client\]
+        E[WebSocket Client]
 
-        F\[Error Reporter\<br\>Web / Mobile\]
+        F[Error Reporter<br>Web / Mobile]
 
     end
 
     subgraph "Server (Quarkus)"
 
-        G\[API Gateway\<br\>JAX-RS\]
+        G[API Gateway<br>JAX-RS]
 
-        H\[Auth & RBAC\]
+        H[Auth & RBAC]
 
-        I\[Conflict Resolution\]
+        I[Conflict Resolution]
 
-        J\[WebSocket Notify\]
+        J[WebSocket Notify]
 
-        K\[Aggregation Service\]
+        K[Aggregation Service]
 
-        L\[GlitchTip Backend Hook\]
+        L[GlitchTip Backend Hook]
 
     end
 
     subgraph "Data"
 
-        M\[TimeEntry Repository\]
+        M[TimeEntry Repository]
 
-        N\[Category Repository\]
+        N[Category Repository]
 
-        O\[User Repository\]
+        O[User Repository]
 
-        P\[SyncQueue Repository\]
+        P[SyncQueue Repository]
 
     end
 
     %% Client internal
 
-    B \--\> A
+    B --> A
 
-    A \--\> C
+    A --> C
 
-    C \--\> M
+    C --> M
 
-    C \--\> N
+    C --> N
 
-    D \--\> C
+    D --> C
 
-    D \--\> G
+    D --> G
 
-    E \--\> J
+    E --> J
 
-    F \--\>|Send| L
+    F -->|Send| L
 
     %% Server internal
 
-    G \--\> H
+    G --> H
 
-    G \--\> I
+    G --> I
 
-    G \--\> K
+    G --> K
 
-    I \--\> M
+    I --> M
 
-    I \--\> N
+    I --> N
 
-    J \--\>|Broadcast| E
+    J -->|Broadcast| E
 
-    L \--\>|Report| GlitchTip\[(GlitchTip Server)\]
+    L -->|Report| GlitchTip[(GlitchTip Server)]
 
     %% Data access
 
-    M \--\>|Panache| DB\[(PostgreSQL / SQLite)\]
+    M -->|Panache| DB[(PostgreSQL / SQLite)]
 
-    N \--\>|Panache| DB
+    N -->|Panache| DB
 
-    O \--\>|Panache| DB
+    O -->|Panache| DB
 
-    P \--\>|Panache| DB
+    P -->|Panache| DB
 
-    style A fill:\#FFC107
+    style A fill:#FFC107
 
-    style B fill:\#4CAF50,color:white
+    style B fill:#4CAF50,color:white
 
-    style C fill:\#00BCD4
+    style C fill:#00BCD4
 
-    style D fill:\#9C27B0,color:white
+    style D fill:#9C27B0,color:white
 
-    style E fill:\#673AB7,color:white
+    style E fill:#673AB7,color:white
 
-    style F fill:\#F44336,color:white
+    style F fill:#F44336,color:white
 
-    style G fill:\#E91E63,color:white
+    style G fill:#E91E63,color:white
 
-    style H fill:\#FF9800
+    style H fill:#FF9800
 
-    style I fill:\#3F51B5,color:white
+    style I fill:#3F51B5,color:white
 
-    style J fill:\#673AB7,color:white
+    style J fill:#673AB7,color:white
 
-    style K fill:\#009688,color:white
+    style K fill:#009688,color:white
 
-    style L fill:\#F44336,color:white
+    style L fill:#F44336,color:white
 
-    style M fill:\#8BC34A
+    style M fill:#8BC34A
 
-    style N fill:\#8BC34A
+    style N fill:#8BC34A
 
-    style O fill:\#8BC34A
+    style O fill:#8BC34A
 
-    style P fill:\#8BC34A
+    style P fill:#8BC34A
+
 
 ```
 This component decomposition ensures modularity, testability, and clear ownership—enabling independent evolution of frontend, sync logic, and backend services while preserving the local-first guarantee.  
@@ -797,7 +799,7 @@ erDiagram
 
     users ||--o{ categories : "1:N"
 
-    users ||--o{ time\_entries : "1:N"
+    users ||--o{ time_entries : "1:N"
 
     users {
 
@@ -805,19 +807,19 @@ erDiagram
 
         string email
 
-        string password\_hash
+        string password_hash
 
         string timezone
 
         string role
 
-        boolean is\_deleted
+        boolean is_deleted
 
-        timestamp created\_at
+        timestamp created_at
 
-        timestamp updated\_at
+        timestamp updated_at
 
-        timestamp client\_timestamp
+        timestamp client_timestamp
 
     }
 
@@ -825,73 +827,74 @@ erDiagram
 
         uuid id PK
 
-        uuid user\_id FK
+        uuid user_id FK
 
         string name
 
-        boolean is\_deleted
+        boolean is_deleted
 
-        timestamp created\_at
+        timestamp created_at
 
-        timestamp updated\_at
+        timestamp updated_at
 
-        timestamp client\_timestamp
+        timestamp client_timestamp
 
     }
 
-    time\_entries {
+    time_entries {
 
         uuid id PK
 
-        uuid user\_id FK
+        uuid user_id FK
 
-        uuid category\_id FK
+        uuid category_id FK
 
-        timestamp start\_time
+        timestamp start_time
 
-        timestamp end\_time
+        timestamp end_time
 
         string notes
 
-        boolean is\_deleted
+        boolean is_deleted
 
-        timestamp created\_at
+        timestamp created_at
 
-        timestamp updated\_at
+        timestamp updated_at
 
-        timestamp client\_timestamp
+        timestamp client_timestamp
 
     }
 
-    admin\_settings {
+    admin_settings {
 
         uuid id PK
 
-        string smtp\_host
+        string smtp_host
 
-        int smtp\_port
+        int smtp_port
 
-        string smtp\_username
+        string smtp_username
 
-        string smtp\_password\_encrypted
+        string smtp_password_encrypted
 
-        boolean smtp\_tls
+        boolean smtp_tls
 
-        string from\_email
+        string from_email
 
-        boolean email\_verification\_enabled
+        boolean email_verification_enabled
 
-        uuid last\_updated\_by\_user\_id FK "Audit only"
+        uuid last_updated_by_user_id FK "Audit only"
 
-        boolean is\_deleted
+        boolean is_deleted
 
-        timestamp created\_at
+        timestamp created_at
 
-        timestamp updated\_at
+        timestamp updated_at
 
-        timestamp client\_timestamp
+        timestamp client_timestamp
 
     }
+
 
 ```
 **Key Notes**:
@@ -1010,26 +1013,30 @@ This strategy ensures **deterministic, automatic resolution** without user inter
 
 The client maintains a dedicated SQLite table for pending operations:
 
-```sq
-CREATE TABLE sync\_queue (
+```sql
+CREATE TABLE sync_queue (
 
-    id TEXT PRIMARY KEY,               \-- UUID
+    id TEXT PRIMARY KEY,               -- UUID
 
-    entity\_id TEXT NOT NULL,           \-- UUID of affected entity
+    entity_id TEXT NOT NULL,           -- UUID of affected entity
 
-    entity\_type TEXT NOT NULL,         \-- 'time\_entry' | 'category'
+    entity_type TEXT NOT NULL,         -- 'time_entry' | 'category'
 
-    operation TEXT NOT NULL,           \-- 'create' | 'update' | 'delete'
+    operation TEXT NOT NULL,           -- 'create' | 'update' | 'delete'
 
-    payload TEXT NOT NULL,             \-- JSON-serialized entity
+    payload TEXT NOT NULL,             -- JSON-serialized entity
 
-    client\_timestamp TEXT NOT NULL,    \-- ISO 8601
+    client_timestamp TEXT NOT NULL,    -- ISO 8601
 
-    status TEXT NOT NULL DEFAULT 'pending', \-- 'pending' | 'sent' | 'failed' | 'conflict'
+    status TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'sent' | 'failed' | 'conflict'
 
-    created\_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
 
-    updated\_at TEXT NOT NULL
+    updated_at TEXT NOT NULL
+
+);
+
+
 
 ```
 );
@@ -1058,37 +1065,37 @@ sequenceDiagram
 
     participant WebSocket
 
-    User-\>\>ClientApp: Starts timer (offline)
+    User->>ClientApp: Starts timer (offline)
 
-    ClientApp-\>\>LocalDB: INSERT time\_entry (local)
+    ClientApp->>LocalDB: INSERT time_entry (local)
 
-    ClientApp-\>\>SyncQueue: ENQUEUE { op: create, ... }
+    ClientApp->>SyncQueue: ENQUEUE { op: create, ... }
 
     Note over ClientApp: App may be closed or killed
 
     alt Later, when online
 
-        ClientApp-\>\>SyncQueue: Fetch pending ops
+        ClientApp->>SyncQueue: Fetch pending ops
 
-        ClientApp-\>\>Server: POST /api/v1/sync \[batch\]
+        ClientApp->>Server: POST /api/v1/sync [batch]
 
-        Server-\>\>Server: Validate \+ Resolve Conflicts
+        Server->>Server: Validate + Resolve Conflicts
 
-        Server-\>\>Server: Persist to DB
+        Server->>Server: Persist to DB
 
-        Server--\>\>ClientApp: 200 OK \+ resolved entities
+        Server-->>ClientApp: 200 OK + resolved entities
 
-        ClientApp-\>\>LocalDB: UPDATE local records
+        ClientApp->>LocalDB: UPDATE local records
 
-        ClientApp-\>\>SyncQueue: Mark as 'sent'
+        ClientApp->>SyncQueue: Mark as 'sent'
 
         
 
         %% Optional: notify other devices
 
-        Server-\>\>WebSocket: Broadcast "sync\_required"
+        Server->>WebSocket: Broadcast "sync_required"
 
-        WebSocket-\>\>OtherClient: Trigger foreground sync
+        WebSocket->>OtherClient: Trigger foreground sync
 
     end
 
