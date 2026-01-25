@@ -1,116 +1,122 @@
 # Functional Requirements Document: Structure Overview
 
-## Chapter 1: Introduction
-**1.1 Purpose:** Defines the objective of this document, which is to specify the behavioral and data requirements for the "Cloud Time Tracker" system.
-**1.2 Scope:** Delineates what the system will and will not do. It establishes the boundary between the web/mobile clients and the backend services.
-**1.3 Definitions and Acronyms:** A glossary of technical terms (e.g., RBAC, JWT, CRUD, Timer, Record) used throughout the document.
-**1.4 References:** Lists external dependencies, including the original "Simple Time Tracker" codebase (as a functional reference) and UI design systems.
+# Table of Contents
 
-## Chapter 2: Executive Summary
-**2.1 Vision:** A high-level description of the product as a cross-platform (Web & Mobile) productivity tool that brings granular time tracking to the cloud.
-**2.2 Key Business Objectives:**
-*   Migrate local-only features to a synchronized cloud environment.
-*   Enable multi-device usage for a single user.
-*   Provide administrative oversight via role management.
-**2.3 Target Audience:** Productivity enthusiasts, freelancers, and system administrators.
-
-## Chapter 3: System Architecture and Actors
-**3.1 High-Level Architecture:** Describes the client-server model.
-*   **Clients:** Mobile App (iOS/Android), Web App (React/Vue/Angular).
-*   **Server:** RESTful/GraphQL API, Relational Database.
-**3.2 User Roles (Actors):**
-*   **Guest:** Unauthenticated user (limited to landing page/login).
-*   **Standard User:** Registered user with access to their own private time data.
-*   **Administrator:** Elevated user with access to system health, user management, and global configurations.
-**3.3 Data Isolation:** Defines the requirement that Standard Users cannot access other users' records (Multi-tenancy logic).
-
-## Chapter 4: Module 1 — Identity and Access Management (IAM)
-*This chapter details the new requirements not present in the original clone.*
-**4.1 Registration:** Requirements for sign-up (Email/Password, OAuth providers).
-**4.2 Authentication:** Login processes, session management (Token/JWT), and "Remember Me" functionality.
-**4.3 Password Management:** Password reset flows (email links) and change password functionality.
-**4.4 Role Management (RBAC):** Logic for assigning roles and checking permissions (e.g., Only Admins can view the User List).
-**4.5 Account Deletion:** GDPR-compliant "Right to be forgotten" functionality.
-
-## Chapter 5: Module 2 — Taxonomy and Configuration
-**5.1 Categories:** Requirements for creating, editing, and deleting activity categories (e.g., "Work," "Sleep").
-**5.2 Visualization Attributes:** Assigning colors (Hex codes) and icons (Emoji/Vector) to categories.
-**5.3 Tags:** Requirements for creating sub-labels (Tags) and associating them with categories.
-**5.4 Goals:** Setting target durations for specific categories (e.g., "Work 8 hours/day").
-**5.5 Complex Rules:** Logic for automated categorization or validation rules based on time or context.
-
-## Chapter 6: Module 3 — Time Tracking Core
-**6.1 Running Timers:**
-*   Start/Stop mechanics.
-*   Handling multiple simultaneous timers (if supported) or enforcing single active timer constraints.
-*   Notification triggers when a timer is running.
-**6.2 Manual Entry:** Creating past records by selecting start time, end time, and category.
-**6.3 Record Manipulation:**
-*   Editing duration, timestamps, and assigned tags of existing records.
-*   Merging two overlapping or adjacent records.
-**6.4 CSV Export:** Generating downloadable reports of time data.
-
-## Chapter 7: Module 4 — Analytics and Visualization
-**7.1 Dashboard:** The landing view summarizing the current day's activity.
-**7.2 Statistical Charts:**
-*   **Pie Charts:** Distribution of time per category/tag.
-*   **Bar Charts:** Comparison of duration over days/weeks/months.
-**7.3 Filtering:** Requirements for filtering data by custom date ranges (e.g., "Last 7 days") and specific categories.
-**7.4 Timeline View:** A linear visualization of the day's records (Chronological list).
-
-## Chapter 8: Module 5 — Application Settings and Synchronization
-**8.1 Interface Settings:** Dark/Light mode toggles, Language selection (Localization).
-**8.2 Notification Settings:** Configuring push notifications for timer reminders or goal achievements.
-**8.3 Synchronization Logic:** Requirements for conflict resolution when data changes on Mobile and Web simultaneously (e.g., "Last Write Wins").
-
-## Chapter 9: Non-Functional Requirements (NFR)
-**9.1 Security:** Data encryption in transit (HTTPS) and at rest, password hashing standards (e.g., Argon2/Bcrypt).
-**9.2 Performance:** API response time limits (e.g., <200ms) and app load times.
-**9.3 Scalability:** Ability to support concurrent users.
-**9.4 Availability:** Uptime requirements (e.g., 99.9%).
-
-## Chapter 10: Data Requirements
-**10.1 Data Retention:** How long data is stored.
-**10.2 Database Schema Constraints:** Integrity rules (e.g., A Record must belong to a Category).
-**10.3 API Contracts:** General requirements for JSON structure and error handling codes.
-
-***
-
-**Instruction:**
-If you agree with this structure, we will proceed to generate **Chapter 1: Introduction** and **Chapter 2: Executive Summary** in detail.
+*   [Chapter 1: Introduction](#chapter-1-introduction)
+    *   [1.1 Purpose](#11-purpose)
+    *   [1.2 Scope](#12-scope)
+    *   [1.3 Definitions, Acronyms, and Abbreviations](#13-definitions-acronyms-and-abbreviations)
+    *   [1.4 References](#14-references)
+    *   [1.5 Overview of Document](#15-overview-of-document)
+*   [Chapter 2: Executive Summary](#chapter-2-executive-summary)
+    *   [2.1 Vision](#21-vision)
+    *   [2.2 Key Business Objectives](#22-key-business-objectives)
+        *   [2.2.1 Operational Continuity (Offline Mode)](#221-operational-continuity-offline-mode)
+        *   [2.2.2 Centralization and Synchronization](#222-centralization-and-synchronization)
+        *   [2.2.3 Identity and Security](#223-identity-and-security)
+        *   [2.2.4 Deployment Flexibility](#224-deployment-flexibility)
+        *   [2.2.5 Administrative Control](#225-administrative-control)
+    *   [2.3 Target Audience](#23-target-audience)
+    *   [2.4 Assumptions and Dependencies](#24-assumptions-and-dependencies)
+*   [Chapter 3: System Architecture and Actors](#chapter-3-system-architecture-and-actors)
+    *   [3.1 High-Level System Architecture](#31-high-level-system-architecture)
+        *   [3.1.1 The Client Layer (Unified Frontend)](#311-the-client-layer-unified-frontend)
+        *   [3.1.2 The Application Server (Backend)](#312-the-application-server-backend)
+        *   [3.1.3 The Data Layer (Persistence)](#313-the-data-layer-persistence)
+    *   [3.2 System Actors (User Roles)](#32-system-actors-user-roles)
+        *   [3.2.1 Guest](#321-guest)
+        *   [3.2.2 Standard User](#322-standard-user)
+        *   [3.2.3 System Administrator (Instance Owner)](#323-system-administrator-instance-owner)
+        *   [3.2.4 System (Internal Actor)](#324-system-internal-actor)
+    *   [3.3 Permissions Matrix (High-Level)](#33-permissions-matrix-high-level)
+*   [Chapter 4: Module 1 — Identity and Access Management (IAM)](#chapter-4-module-1--identity-and-access-management-iam)
+    *   [4.1 Overview](#41-overview)
+    *   [4.2 User Registration](#42-user-registration)
+    *   [4.3 Authentication (Login)](#43-authentication-login)
+    *   [4.4 Password Management](#44-password-management)
+    *   [4.5 Role Management (RBAC) & Bootstrapping](#45-role-management-rbac--bootstrapping)
+    *   [4.6 Account Management & Deletion](#46-account-management--deletion)
+    *   [4.7 Security Configuration (Password Policy)](#47-security-configuration-password-policy)
+    *   [4.8 Session Management](#48-session-management)
+*   [Chapter 5: Module 2 — Taxonomy and Configuration](#chapter-5-module-2--taxonomy-and-configuration)
+    *   [5.1 Overview](#51-overview)
+    *   [5.2 Category Management](#52-category-management)
+    *   [5.3 Tag Management](#53-tag-management)
+    *   [5.4 Goals and Limits](#54-goals-and-limits)
+    *   [5.5 Automation Rules (Smart Categorization)](#55-automation-rules-smart-categorization)
+    *   [5.6 Data Validation and Constraints](#56-data-validation-and-constraints)
+*   [Chapter 6: Module 3 — Time Tracking Core](#chapter-6-module-3--time-tracking-core)
+    *   [6.1 Overview](#61-overview)
+    *   [6.2 Real-Time Tracking (Running Timers)](#62-real-time-tracking-running-timers)
+    *   [6.3 Manual Data Entry](#63-manual-data-entry)
+    *   [6.4 Record Management (CRUD)](#64-record-management-crud)
+    *   [6.5 Data Export (CSV)](#65-data-export-csv)
+    *   [6.6 Synchronization and Conflict Resolution](#66-synchronization-and-conflict-resolution)
+*   [Chapter 7: Module 4 — Analytics and Visualization](#chapter-7-module-4--analytics-and-visualization)
+    *   [7.1 Overview](#71-overview)
+    *   [7.2 The Dashboard](#72-the-dashboard)
+    *   [7.3 Statistical Charts (Server-Driven)](#73-statistical-charts-server-driven)
+    *   [7.4 Data Filtering & Saved Views](#74-data-filtering--saved-views)
+    *   [7.5 Timeline View (Local & Offline)](#75-timeline-view-local--offline)
+    *   [7.6 Reporting Logic](#76-reporting-logic)
+*   [Chapter 8: Module 5 — Application Settings and Synchronization](#chapter-8-module-5--application-settings-and-synchronization)
+    *   [8.1 Overview](#81-overview)
+    *   [8.2 Application Interface Settings](#82-application-interface-settings)
+    *   [8.3 Notification Settings](#83-notification-settings)
+    *   [8.4 Synchronization Logic (The Sync Engine)](#84-synchronization-logic-the-sync-engine)
+    *   [8.5 Data Maintenance & Privacy](#85-data-maintenance--privacy)
+    *   [8.6 Admin / Self-Hosted Configuration (Web Only)](#86-admin--self-hosted-configuration-web-only)
+*   [Chapter 9: Non-Functional Requirements (NFR)](#chapter-9-non-functional-requirements-nfr)
+    *   [9.1 Overview](#91-overview)
+    *   [9.2 Security Requirements](#92-security-requirements)
+    *   [9.3 Performance Requirements](#93-performance-requirements)
+    *   [9.4 Scalability and Hosting](#94-scalability-and-hosting)
+    *   [9.5 Reliability and Availability](#95-reliability-and-availability)
+    *   [9.6 Usability and Accessibility](#96-usability-and-accessibility)
+    *   [9.7 Compliance](#97-compliance)
+    *   [9.8 Operations and Monitoring](#98-operations-and-monitoring)
+*   [Chapter 10: Data Requirements](#chapter-10-data-requirements)
+    *   [10.1 Overview](#101-overview)
+    *   [10.2 Data Entities (Conceptual Schema)](#102-data-entities-conceptual-schema)
+        *   [10.2.1 User](#1021-user)
+        *   [10.2.2 Category](#1022-category)
+        *   [10.2.3 Tag](#1023-tag)
+        *   [10.2.4 Time Record](#1024-time-record)
+        *   [10.2.5 Sync Queue (Client-Side Only)](#1025-sync-queue-client-side-only)
+    *   [10.3 Data Integrity and Synchronization Rules](#103-data-integrity-and-synchronization-rules)
+    *   [10.4 Data Retention and Archiving](#104-data-retention-and-archiving)
+    *   [10.5 API Interface Standards](#105-api-interface-standards)
 
 ---
-
 # Chapter 1: Introduction
 
 ## 1.1 Purpose
 
-The purpose of this Functional Requirements Document (FRD) is to provide a comprehensive specification for the development of the **Cloud Time Tracker** system. This document details the functional behaviors, system architecture, external interfaces, and non-functional constraints required to build the solution.
+The purpose of this Functional Requirements Document (FRD) is to provide a comprehensive specification for the development of the  Time Tracker system system. This document details the functional behaviors, system architecture, external interfaces, and non-functional constraints required to build the solution.
 
-This document allows stakeholders to verify that all business requirements have been accounted for and provides the technical team (developers, testers, and architects) with a definitive guide for implementation. It serves as the primary contract regarding the system's capabilities.
+This document serves as the primary contract between stakeholders and the technical team. It allows stakeholders to verify that business objectives—specifically the need for data centralization alongside robust offline reliability—have been accounted for, while providing developers with a definitive guide for implementation.
 
 ## 1.2 Scope
 
-The **Cloud Time Tracker** project aims to develop a centralized, cross-platform productivity application. The system functionality is derived from the "Simple Time Tracker" Android application (acting as the functional baseline) but is re-architected to support a cloud-native environment.
+The  Time Tracker system project aims to develop a centralized, cross-platform productivity application. The system functionality is derived from the "Simple Time Tracker" Android application (acting as the functional baseline) but is re-architected to support a **Local-First, Cloud-Sync** environment.
 
 The scope of the software system includes:
 
-1. **Backend API:** A RESTful or GraphQL server responsible for business logic, data persistence, and identity management.  
-2. **Web Application:** A responsive browser-based interface for managing time records, viewing analytics, and system administration.  
-3. **Mobile Application:** A cross-platform (iOS and Android) mobile client focusing on quick data entry and timer management.  
-4. **Database:** A centralized relational database storing user profiles, authentication credentials, and time-tracking data.
+1. **Mobile Application (iOS/Android):** A native or cross-platform client utilizing local persistent storage. It acts as the primary tool for data entry and must remain fully functional (Start/Stop timers, Edit records) without an internet connection, synchronizing data to the cloud when connectivity is restored.  
+2. **Web Application:** A responsive browser-based interface for managing time records, viewing deep analytics, and system administration. It must handle temporary network interruptions gracefully.  
+3. **Backend API:** A RESTful server responsible for business logic, identity management, and the complex orchestration of data synchronization between devices.  
+4. **Central Database:** A server-side relational database storing the "Source of Truth" for user profiles, credentials, and aggregated time-tracking data.
 
-**Key Functional Boundaries:**
+### Key Functional Boundaries
 
-* The system shall transition from a "local-first" storage model (SQLite) to a "cloud-first" model (PostgreSQL/MySQL) to enable synchronization.  
-* The system shall introduce **Role-Based Access Control (RBAC)** to differentiate between Standard Users and System Administrators.  
-* The system shall support secure authentication (Login/Registration), which is absent in the reference application.
+* **Offline Capability:** The system shall utilize a "Store-and-Forward" mechanism. User actions performed while offline are queued locally and executed against the server upon reconnection.  
+* **Synchronization:** The system shall ensure data consistency across devices, employing conflict resolution strategies to handle changes made simultaneously on offline devices.  
+* **Identity:** The system shall introduce Role-Based Access Control (RBAC) and secure authentication (Login/Registration).
 
-**Out of Scope:**
+### Out of Scope
 
 * Native Wear OS or WatchOS independent applications (MVP is limited to Phone/Web).  
-* Desktop-specific native clients (Windows .exe / MacOS .app); the Web Application serves desktop users.  
-* Offline-only mode without internet connectivity requirements for initial setup.
+* Desktop-specific native clients (Windows .exe / MacOS .app); the Web Application serves desktop users.
 
 ## 1.3 Definitions, Acronyms, and Abbreviations
 
@@ -118,21 +124,19 @@ The scope of the software system includes:
 | :---- | :---- |
 | **Record** | A historical unit of time tracking consisting of a start time, end time, duration, and assigned category. |
 | **Running Record** | An active timer that has a start time but no end time yet. |
-| **Category** | A high-level classification for time records (e.g., "Work", "Sleep"). |
-| **Tag** | A sub-label applied to a record for granular filtering (e.g., "Meeting", "Deep Work"). |
-| **RBAC** | **Role-Based Access Control**. A method of restricting network access based on the roles of individual users within the enterprise. |
-| **JWT** | **JSON Web Token**. Used for securely transmitting information between the client and server as a JSON object, primarily for authentication. |
-| **CRUD** | **Create, Read, Update, Delete**. The four basic functions of persistent storage. |
-| **MVP** | **Minimum Viable Product**. The version of the product with just enough features to be usable by early customers. |
-| **Reference App** | The original "Simple Time Tracker" Android codebase used as the visual and functional design source. |
-| **Admin** | System Administrator with elevated privileges. |
+| **Local-First** | An architectural pattern where the client reads/writes to local storage primarily, treating the cloud as a synchronization point rather than the primary data source during user interaction. |
+| **Sync Queue** | A local data structure used to store API requests (Create, Update, Delete) generated while the device is offline, to be processed when online. |
+| **Conflict Resolution** | The logic applied when a record has been modified on two different devices before synchronization occurred (e.g., Last-Write-Wins or Manual Merge). |
+| **Optimistic UI** | A frontend pattern where the interface updates immediately upon user action, anticipating a successful server response, to ensure a lag-free experience. |
+| **RBAC** | Role-Based Access Control. A method of restricting network access based on the roles of individual users. |
+| **JWT** | JSON Web Token. Used for securely transmitting information between the client and server. |
+| **MVP** | Minimum Viable Product. |
 
 ## 1.4 References
 
 The following documents and resources serve as references for this FRD:
 
-1. **Reference Implementation:** *Simple Time Tracker* (Android).  
-   * Repository: \[GitHub Link provided in context\]  
+1. **Reference Implementation:** Simple Time Tracker (Android).  
    * *Usage:* Defines the expected behavior for timers, charts, and categorization logic.  
 2. **IEEE Std 830-1998:** IEEE Recommended Practice for Software Requirements Specifications (used as a structural guide).
 
@@ -141,44 +145,45 @@ The following documents and resources serve as references for this FRD:
 The remainder of this document is organized as follows:
 
 * **Chapter 2** summarizes the business vision and objectives.  
-* **Chapter 3** defines the system architecture and user actors.  
+* **Chapter 3** defines the system architecture, specifically addressing the Client-Server sync topology.  
 * **Chapters 4 through 8** detail the specific functional requirements by module (IAM, Taxonomy, Time Tracking, Analytics, Settings).  
-* **Chapter 9** specifies non-functional requirements including security and performance.  
+* **Chapter 9** specifies non-functional requirements, including specific constraints on sync latency and data integrity.  
 * **Chapter 10** outlines data requirements and API constraints.
 
+   
 ---
 
 # Chapter 2: Executive Summary
 
 ## 2.1 Vision
 
-The **Cloud Time Tracker** system is envisioned as a scalable, cloud-native productivity platform that extends the proven utility of the "Simple Time Tracker" mobile application. While the reference application focuses on single-device, offline utility, this system provides a centralized environment where time tracking data is synchronized across multiple interfaces (Web and Mobile).
+The Time Tracker system is envisioned as a flexible, **self-hostable** productivity platform that extends the proven utility of the "Simple Time Tracker" mobile application. While the reference application focuses on single-device utility, this system provides a centralized environment where time tracking data is seamlessly synchronized across multiple interfaces (Web and Mobile), regardless of where the backend is hosted.
 
-The core vision is to provide users with a seamless transition between quick data entry on mobile devices and in-depth analysis or reporting on desktop web interfaces, underpinned by a secure authentication layer and robust user management.
+The core vision is to provide users with a "best of both worlds" experience: the speed and reliability of a local tool that functions anywhere, combined with the power of a centralized backend—whether that backend runs on a public cloud or a private home server—ensuring complete data sovereignty and accessibility.
 
 ## 2.2 Key Business Objectives
 
 The development of this system is driven by the following strategic objectives:
 
-### 2.2.1 Centralization and Synchronization
+### 2.2.1 Operational Continuity (Offline Mode)
 
-* **Objective:** To eliminate data silos by migrating from local SQLite storage to a centralized server-side database.  
-* **Benefit:** Users can switch devices (e.g., from Android to iOS, or Mobile to Web) without manual data export/import. Running timers and historical records must reflect the same state on all active sessions.
+**Objective:** To ensure users can track time, edit records, and manage tasks regardless of network availability. **Benefit:** Eliminates frustration caused by poor connectivity. Users working in remote locations can continue to work without interruption. Data captures locally and synchronizes automatically to the self-hosted instance once connectivity is restored.
 
-### 2.2.2 Identity and Security
+### 2.2.2 Centralization and Synchronization
 
-* **Objective:** To implement a secure Identity and Access Management (IAM) system.  
-* **Benefit:** Unlike the reference app, which is open to anyone with physical device access, this system ensures data privacy through user authentication. It allows for the distinction between individual user data and administrative oversight.
+**Objective:** To eliminate data silos by migrating from purely local storage to a centralized server-side architecture. **Benefit:** Users can switch devices (e.g., from Mobile to Web) without manual data export/import. Running timers and historical records must eventually reflect the same state on all sessions once synchronization occurs.
 
-### 2.2.3 Platform Agnosticism
+### 2.2.3 Identity and Security
 
-* **Objective:** To decouple the core feature set from the Android ecosystem.  
-* **Benefit:** By offering a Web Client, the system becomes accessible to macOS, Windows, and Linux users, significantly expanding the potential user base beyond the original Android-only audience.
+**Objective:** To implement a secure Identity and Access Management (IAM) system. **Benefit:** Unlike the reference app, which is open to anyone with physical device access, this system ensures data privacy through user authentication. It safeguards sensitive productivity data and allows for the distinction between individual user data and administrative oversight.
 
-### 2.2.4 Administrative Control
+### 2.2.4 Deployment Flexibility
 
-* **Objective:** To provide a comprehensive administration panel.  
-* **Benefit:** System administrators gains the ability to manage the platform's health, user base, and role assignments, facilitating potential future use cases such as enterprise deployment or team management.
+**Objective:** To decouple the system from proprietary cloud infrastructure. **Benefit:** The system shall be containerized (e.g., Docker) and lightweight, allowing users to self-host the application on any environment—from a low-cost VPS to a local Raspberry Pi or a corporate intranet server.
+
+### 2.2.5 Administrative Control
+
+**Objective:** To provide a comprehensive administration panel. **Benefit:** System administrators (or the self-hoster themselves) gain the ability to manage the platform's health, user base, and role assignments.
 
 ## 2.3 Target Audience
 
@@ -186,176 +191,203 @@ The system is designed to serve distinct user groups with specific needs:
 
 | User Class | Description | Key Needs |
 | :---- | :---- | :---- |
-| **Productivity Enthusiasts** | Individuals practicing "Quantified Self" or time-blocking techniques. | Quick timer access, granular categorization, visual statistics (Pie/Bar charts). |
-| **Freelancers / Contractors** | Professionals who track time for billing purposes. | Accurate start/stop times, CSV export for invoicing, project-based tagging. |
-| **System Administrators** | Technical owners of the application instance. | User lifecycle management (Create/Ban/Delete), system configuration, role delegation. |
+| **Self-Hosters / Privacy Advocates** | Users who prefer to own their data and run services on their own hardware. | Docker support, low resource usage, no external tracking dependencies, full data ownership. |
+| **Productivity Enthusiasts** | Individuals practicing "Quantified Self" or time-blocking techniques. | Instant timer access, zero-latency UI (Optimistic updates), visual statistics. |
+| **Freelancers / Contractors** | Professionals who track time for billing purposes. | Reliability (no data loss during network outages), accurate timestamping, CSV export. |
+| **System Administrators** | Technical owners of the application instance. | User lifecycle management, system configuration. |
 
 ## 2.4 Assumptions and Dependencies
 
-* **Connectivity:** The core functionality assumes a stable internet connection is available for data synchronization.  
-* **Hosting:** The system requires a cloud hosting environment (e.g., AWS, Azure, DigitalOcean) capable of running the backend API and database.  
-* **Reference Parity:** It is assumed that the visual logic (colors, icons, chart behaviors) will strictly follow the "Simple Time Tracker" design patterns unless technical constraints of the web platform dictate otherwise.
+* **Hosting Environment:** The system assumes a standard runtime environment (e.g., Docker, Node.js, or Go) is available. It does **not** rely on platform-specific services (like AWS Lambda or Firebase) to ensure it can run on any server.  
+* **Initial Connectivity:** While the app supports offline usage, an active network connection to the host server is assumed to be required for the **initial** account registration and first-time login on a new device.  
+* **Synchronization Latency:** It is assumed that data consistency is "Eventual." While local updates are instant, reflection of that data on other devices depends on network availability and sync frequency.  
+* **Reference Parity:** It is assumed that the visual logic (colors, icons, chart behaviors) will strictly follow the "Simple Time Tracker" design patterns unless technical constraints of the web platform or synchronization logic dictate otherwise.
 
+   
 ---
 
 # Chapter 3: System Architecture and Actors
 
 ## 3.1 High-Level System Architecture
 
-The **Cloud Time Tracker** shall be built upon a robust Client-Server architecture. Unlike the reference application which operates as a standalone local installation, this system requires a centralized backend to manage authentication, synchronization, and data persistence.
+The Time Tracker system follows a **Local-First, Cloud-Sync Hybrid Architecture**. The system is designed for maximum portability and maintainability, utilizing a unified frontend strategy and a flexible backend storage model.
 
-The system is composed of three primary layers:
+The system consists of three primary layers:
 
-### 3.1.1 The Client Layer (Frontend)
+### 3.1.1 The Client Layer (Unified Frontend)
 
-This layer presents the user interface and captures user inputs. It communicates with the server via secure HTTP requests.
+To reduce development overhead and ensure feature parity, the system shall utilize a **Single Codebase** architecture (e.g., using a cross-platform framework) that compiles to both the Web Application and Native Mobile Applications.
 
-* **Web Client:** A Single Page Application (SPA) accessible via standard web browsers. It provides the full feature set including time tracking, detailed reporting, and administrative dashboards.  
-* **Mobile Client:** A cross-platform application (iOS and Android). It prioritizes "on-the-go" interactions such as starting/stopping timers and quick categorization, while maintaining synchronization with the web view.
+* **Unified Logic:** The UI components, local database management, and synchronization logic are written once and shared across platforms.  
+* **Platform Specifics:**  
+  * **Web Client:** Deployed as a Responsive Web App.  
+  * **Mobile Client:** Deployed as a Native App (iOS/Android) wrapping the shared core.  
+* **Behavior:** Both platforms utilize **Optimistic UI** patterns, ensuring the interface updates immediately upon user input without waiting for server confirmation.  
+* **Sync Engine:** A shared background process responsible for queueing local changes (Create, Update, Delete) and exchanging them with the server when connectivity is available.
 
 ### 3.1.2 The Application Server (Backend)
 
-This is the core processing unit of the system.
+The Server acts as the central synchronization hub and authentication provider. It is designed to be lightweight and container-ready (e.g., Docker).
 
-* **API Interface:** Exposes RESTful or GraphQL endpoints to serve data to the clients.  
-* **Authentication Service:** Validates user credentials, issues security tokens (e.g., JWT), and enforces Role-Based Access Control (RBAC).  
-* **Business Logic Controller:** handles the rules for timer calculations, complex categorization logic, and data validation (e.g., preventing a user from modifying another user's data).
+* **API Interface:** Exposes standard RESTful endpoints. This interface handles authentication, receives sync payloads, and serves aggregated data to clients.  
+* **Business Logic Layer:**  
+  * Validates incoming data integrity.  
+  * Handles **Conflict Resolution** (managing scenarios where multiple devices modify the same record).  
+  * Enforces Role-Based Access Control (RBAC).
 
 ### 3.1.3 The Data Layer (Persistence)
 
-* **Relational Database:** A centralized database (e.g., PostgreSQL or MySQL) responsible for storing:  
-  * User Accounts and Roles.  
-  * Configuration (Categories, Tags, Goals).  
-  * Time Records (Start time, End time, Duration).  
-* **Data Isolation:** The database architecture must support multi-tenancy logic, ensuring that a query made by User A never returns data belonging to User B.
+The system supports a pluggable database architecture to accommodate different hosting needs:
+
+* **Production / Multi-User:** Supports standard Relational Databases (e.g., **PostgreSQL** or **MySQL**) for robust, high-concurrency environments.  
+* **Lightweight / Development:** Supports **SQLite** (file-based) for easy deployment on low-resource hardware, single-user self-hosted instances, or development environments.  
+* **Data Isolation:** Regardless of the database engine, the schema must enforce strict multi-tenancy, ensuring queries are always scoped to the authenticated user.
 
 ## 3.2 System Actors (User Roles)
 
-The system employs **Role-Based Access Control (RBAC)** to define permissions. The following actors are identified:
+The system employs Role-Based Access Control (RBAC) to define permissions.
 
 ### 3.2.1 Guest
 
 A user who interacts with the system but has not established an identity.
 
-* **Capabilities:**  
-  * View Landing Page / Marketing content.  
-  * Access "Login" and "Register" interfaces.  
-  * Initiate Password Reset workflow.  
-* **Constraints:** Cannot view the dashboard, start timers, or access API endpoints requiring authorization.
+* **Capabilities:** View Landing Page, Login, Register.  
+* **Constraints:** Cannot access the dashboard or track time.
 
 ### 3.2.2 Standard User
 
-The primary consumer of the application, representing a verified individual tracking their time.
+The primary consumer of the application.
 
 * **Capabilities:**  
-  * Manage personal Profile (change password, update email).  
-  * **Time Tracking:** Start/Stop timers, create manual records, edit/delete own records.  
-  * **Taxonomy:** Create and manage personal Categories, Tags, and Goals.  
-  * **Analytics:** View charts and export own data to CSV.  
-* **Constraints:** Strictly limited to accessing their own data. Cannot modify system-wide configurations or view other users' lists.
+  * **Offline Access:** Full ability to create/edit time records and manage categories while disconnected.  
+  * **Time Tracking:** Start/Stop timers, create manual records.  
+  * **Analytics:** View charts and export own data.  
+* **Constraints:** Strictly limited to accessing their own data.
 
-### 3.2.3 System Administrator
+### 3.2.3 System Administrator (Instance Owner)
 
-A privileged user responsible for the operational management of the application.
+A privileged user responsible for the operational management of the instance.
 
 * **Capabilities:**  
-  * **User Management:** View list of all registered users, ban/suspend users, delete users.  
-  * **Role Management:** Promote a Standard User to Administrator or demote an Administrator.  
-  * **System Configuration:** Manage global settings (e.g., enable/disable registration, system maintenance mode).  
-* **Constraints:** While the Administrator manages *accounts*, the system design should ideally prevent Administrators from viewing the private time-tracking content of Standard Users, unless specific auditing features are enabled (privacy by design).
+  * **User Management:** View registered users, ban/suspend users, delete users.  
+  * **System Configuration:** Toggle registration (open/closed), manage SMTP settings.  
+* **Platform Constraint:** **Administrative features are available exclusively on the Web Client.** The Mobile Client does not include administrative UI components.
 
 ### 3.2.4 System (Internal Actor)
 
 Automated processes running on the server.
 
-* **Capabilities:**  
-  * Sending transactional emails (Welcome email, Password Reset).  
-  * Performing scheduled database maintenance or backups.
+* **Capabilities:** Sending transactional emails (Welcome, Password Reset) and performing database maintenance (cleanup of soft-deleted records).
 
 ## 3.3 Permissions Matrix (High-Level)
 
-The following table summarizes access rights for key system functions:
-
 | Function | Guest | Standard User | Administrator |
 | :---- | :---: | :---: | :---: |
-| **Register / Login** | ✅ | ❌ (Already In) | ❌ (Already In) |
-| **View Dashboard** | ❌ | ✅ | ✅ |
-| **Create/Edit Time Records** | ❌ | ✅ (Own Data) | ✅ (Own Data) |
-| **Manage Categories** | ❌ | ✅ (Own Data) | ✅ (Own Data) |
-| **View User List** | ❌ | ❌ | ✅ |
-| **Ban/Delete Users** | ❌ | ❌ | ✅ |
-| **Change Global Settings** | ❌ | ❌ | ✅ |
+| Register / Login | ✅ | ❌ | ❌ |
+| **Offline Data Entry** | ❌ | ✅ | ✅ |
+| View Dashboard | ❌ | ✅ | ✅ |
+| Create/Edit Time Records | ❌ | ✅ (Own Data) | ✅ (Own Data) |
+| Manage Categories | ❌ | ✅ (Own Data) | ✅ (Own Data) |
+| **Admin Panel Access** | ❌ | ❌ | ✅ (**Web Only**) |
+| View User List | ❌ | ❌ | ✅ (**Web Only**) |
+| Ban/Delete Users | ❌ | ❌ | ✅ (**Web Only**) |
+| Change Global Settings | ❌ | ❌ | ✅ (**Web Only**) |
 
+   
 ---
 
 # Chapter 4: Module 1 — Identity and Access Management (IAM)
 
 ## 4.1 Overview
 
-This module defines the requirements for user identification, authentication, and authorization. Unlike the reference local-only application, the Cloud Time Tracker requires a secure barrier to entry to protect user data stored on the central server. The system shall utilize **Role-Based Access Control (RBAC)** to govern permissions.
+This module defines the requirements for user identification, authentication, and authorization. Given the **self-hosted** nature of the system, the IAM module must provide flexible security controls, allowing instance owners to define how strict the access requirements are (e.g., email verification, password complexity). Additionally, the system must support **offline session persistence**, ensuring that a lack of internet connectivity does not lock an authenticated user out of their local data.
 
 ## 4.2 User Registration
 
-**ID:** FR-IAM-01 The system shall allow Guest users to create a new account to become Standard Users.
+**ID: FR-IAM-01** The system shall manage the onboarding of new users.
 
-* **FR-IAM-01.1:** The system shall provide a registration form requiring the following fields:  
-  * Email Address (Must be unique within the system).  
-  * Password (Must meet complexity requirements: min. 8 characters, at least one number and special character).  
+* **FR-IAM-01.1:** The system shall provide a registration form requiring:  
+  * Email Address (Must be unique within the instance).  
+  * Password (Must meet the complexity requirements defined in FR-IAM-07).  
   * Confirm Password.  
-* **FR-IAM-01.2:** The system shall validate that the email address follows a valid format (RFC 5322).  
-* **FR-IAM-01.3:** Upon successful registration, the system shall create the user account with the default role of **Standard User**.  
-* **FR-IAM-01.4:** The system shall hash the user's password using a secure algorithm (e.g., Argon2 or Bcrypt) before storing it in the database. Plain text passwords must never be stored.  
-* **FR-IAM-01.5:** The system shall prevent duplicate registrations using the same email address and provide a user-friendly error message indicating the account already exists.
+* **FR-IAM-01.2 (Instance Security):** The system shall provide a global configuration (managed by the Administrator) to **Enable or Disable** public registration.  
+  * If Disabled: The registration interface is inaccessible to new users.  
+* **FR-IAM-01.3 (Email Verification):** The system shall support an "Account Verification" workflow.  
+  * **Configuration:** The Administrator can Toggle this feature (Enable/Disable).  
+  * **Logic:** If Enabled, a newly registered user is created in a "Pending" state. The system sends a verification link to the provided email. The user cannot log in until the link is clicked.  
+  * **Dependency:** Requires valid SMTP settings. If SMTP is not configured, this feature should auto-disable or warn the Admin.  
+* **FR-IAM-01.4:** The system shall hash the user's password using a secure, industry-standard cryptographic algorithm before storage. Plain text passwords must never be stored.
 
 ## 4.3 Authentication (Login)
 
-**ID:** FR-IAM-02 The system shall allow registered users and administrators to authenticate their identity to access protected resources.
+**ID: FR-IAM-02** The system shall allow users to authenticate to access protected resources and synchronize data.
 
 * **FR-IAM-02.1:** The system shall accept Email and Password as credentials.  
-* **FR-IAM-02.2:** Upon successful authentication, the system shall issue a secure access token (e.g., JSON Web Token \- JWT) to the client. This token shall be included in the header of subsequent API requests.  
-* **FR-IAM-02.3:** The system shall provide a generic error message ("Invalid email or password") in case of authentication failure to prevent user enumeration attacks.  
-* **FR-IAM-02.4:** The system shall support a "Remember Me" function, extending the validity of the session or refresh token (e.g., to 30 days) if selected by the user.  
-* **FR-IAM-02.5:** The system shall support a **Logout** function. Upon execution, the client shall discard the access token, and the system shall invalidate the session on the server side (if stateful sessions are used) or blacklist the token (if stateless).
+* **FR-IAM-02.2:** Upon successful authentication, the server shall issue a secure token pair (Access Token \+ Refresh Token) or a long-lived session token to the client.  
+* **FR-IAM-02.3 (Offline Access):** The Client Application must verify the presence of a locally stored authentication token upon launch.  
+  * If a token exists, the user is granted immediate access to the application’s Dashboard (Offline Mode).  
+  * The app shall attempt to validate/refresh the token with the server in the background without blocking the UI.  
+* **FR-IAM-02.4:** The system shall support a Logout function. This action must:  
+  * Delete the local token from the device storage.  
+  * Invalidate the session on the server.
 
 ## 4.4 Password Management
 
-**ID:** FR-IAM-03 The system shall provide mechanisms for credential recovery and updates.
+**ID: FR-IAM-03** The system shall provide mechanisms for credential updates.
 
-* **FR-IAM-03.1 (Forgot Password):** The system shall allow unauthenticated users to request a password reset via email.  
-  * The user inputs their email address.  
-  * The system generates a time-limited, one-time-use token and sends a link to the user's email.  
-  * Clicking the link navigates the user to a "Set New Password" screen.  
-* **FR-IAM-03.2 (Change Password):** The system shall allow authenticated users to change their password via the profile settings. This action requires entering the **Current Password** for verification before setting the **New Password**.
+* **FR-IAM-03.1 (Change Password):** The system shall allow authenticated users to change their password via the profile settings.  
+* **FR-IAM-03.2 (Reset Password):** The system shall allow unauthenticated users to request a password reset via email (requires SMTP).  
+* **FR-IAM-03.3 (Admin Override):** The Administrator shall have the ability to manually reset a user's password via the Admin Panel (useful for self-hosted instances without SMTP configured).
 
-## 4.5 Role Management (RBAC)
+## 4.5 Role Management (RBAC) & Bootstrapping
 
-**ID:** FR-IAM-04 The system shall restrict access to resources based on the user's assigned role.
+**ID: FR-IAM-04** The system shall restrict access to resources based on the user's assigned role and handle initial setup.
 
-* **FR-IAM-04.1:** The system shall support at minimum two distinct roles:  
-  1. **Standard User:** Access to own data only.  
-  2. **Administrator:** Access to user management and system configuration.  
-* **FR-IAM-04.2:** By default, all newly registered users are assigned the **Standard User** role.  
-* **FR-IAM-04.3:** Only an existing **Administrator** shall have the permission to modify the role of another user (e.g., promoting a Standard User to Admin).  
-* **FR-IAM-04.4:** The system shall verify the user's role at the API Endpoint level (Middleware) before processing any request that requires elevated privileges.
+* **FR-IAM-04.1 (System Bootstrap):** Upon the very first startup of the application instance (if the database is empty):  
+  * The system shall automatically create a default **Administrator** account (e.g., `admin@local.host`).  
+  * The system shall generate a random, secure temporary password.  
+  * This password must be output to the **Server Logs** (stdout) for the host to retrieve.  
+* **FR-IAM-04.2 (First Login Enforcement):** When the default Administrator logs in with the generated password, the system must force a **Password Change** before allowing access to the dashboard.  
+* **FR-IAM-04.3:** The system shall support two distinct roles:  
+  * **Standard User:** Access to own data only.  
+  * **Administrator:** Access to system configuration, user management, and global settings.  
+* **FR-IAM-04.4:** The Web Client shall dynamically hide/show the "Admin Panel" link based on the logged-in user's role.
 
 ## 4.6 Account Management & Deletion
 
-**ID:** FR-IAM-05 The system shall manage the lifecycle of the user account.
+**ID: FR-IAM-05** The system shall manage the lifecycle of the user account.
 
-* **FR-IAM-05.1:** The system shall allow a **Standard User** to delete their own account via the settings menu.  
-  * This action is irreversible.  
-  * Upon confirmation, the system must perform a "Hard Delete" of the user's authentication credentials and all associated personal data (Time Records, Categories, Tags) to comply with data privacy standards.  
-* **FR-IAM-05.2:** The system shall allow an **Administrator** to ban or delete other users.  
-  * **Ban:** The user data remains, but login is disabled.  
-  * **Delete:** Identical to the user-initiated hard delete.
+* **FR-IAM-05.1 (Self-Deletion):** A Standard User shall have the option to delete their own account. This triggers a permanent removal of data from the server.  
+* **FR-IAM-05.2 (Admin Management):** An Administrator shall have the ability to Ban (suspend access) or Delete other users via the Web Interface.
 
-## 4.7 Session Management
+## 4.7 Security Configuration (Password Policy)
 
-**ID:** FR-IAM-06 The system shall manage the user's connectivity state securely.
+**ID: FR-IAM-07** The system shall allow the Administrator to define security standards for the instance.
 
-* **FR-IAM-06.1:** Access tokens shall have a short lifespan (e.g., 15-60 minutes).  
-* **FR-IAM-06.2:** The system shall implement a "Refresh Token" mechanism to allow the client to silently acquire a new access token without forcing the user to re-enter credentials, provided the session is still valid.  
-* **FR-IAM-06.3:** If a user changes their password, all existing sessions/tokens for that user on other devices must be invalidated immediately.
+* **FR-IAM-07.1 (Complexity Rules):** The Admin Panel shall provide settings to define the required Password Pattern for all users. Configurable parameters include:  
+  * Minimum Length (Default: 8).  
+  * Require Uppercase Letters (e.g., Minimum 2).  
+  * Require Special Characters (e.g., Minimum 1).  
+  * Require Numbers.  
+* **FR-IAM-07.2 (Enforcement):** These rules shall be enforced during:  
+  * New User Registration.  
+  * Password Change actions.  
+  * Password Reset actions.
+
+## 4.8 Session Management
+
+**ID: FR-IAM-06** The system shall manage the user's connectivity state securely.
+
+* **FR-IAM-06.1 (Token Strategy):**  
+  * **Access Token:** Short lifespan (e.g., 15-60 minutes). Used to authorize API requests.  
+  * **Refresh Token:** Long lifespan (e.g., 30 days). Used to acquire new Access Tokens silently.  
+*   
+* **FR-IAM-06.2 (Secure Storage):** Tokens must be stored using platform-best practices to prevent extraction:  
+  * **Web Client:** HttpOnly / Secure Cookies (preferred) or LocalStorage.  
+  * **Mobile Client:** Encrypted KeyStore (Android) or Keychain (iOS).  
+*   
+* **FR-IAM-06.3 (Refresh Mechanism):** The client shall automatically attempt to refresh the session when the Access Token expires. If the Refresh Token is invalid or expired (and the device is online), the user is redirected to the Login screen.  
+* **FR-IAM-06.4 (Security Invalidation):** If a user changes their password, the system must invalidate all existing Refresh Tokens associated with that user account. This forces all other active sessions (e.g., on other devices) to re-authenticate upon their next server contact.
 
 ---
 
@@ -363,58 +395,68 @@ This module defines the requirements for user identification, authentication, an
 
 ## 5.1 Overview
 
-This module defines the requirements for how users organize their time data. While the core function is tracking time, the value is derived from how that time is categorized. This module replicates the flexible taxonomy of the reference Android application, adapted for a multi-platform environment.
+This module defines the requirements for how users organize their time data. While the core function is tracking time, the value is derived from how that time is categorized. This module replicates the flexible taxonomy of the reference Android application but adapts it for a multi-device environment.
 
-All data entities described in this chapter are **user-scoped**, meaning User A cannot see or access the Categories or Tags created by User B.
+**Key Architectural Constraint:** Taxonomy data (Categories, Tags, Rules) creates the context for time tracking. Therefore, this data must be fully available **offline** on the client device. Changes made to the taxonomy on one device must propagate to others during synchronization to ensure reporting consistency.
 
 ## 5.2 Category Management
 
-**ID:** FR-TAX-01 The system shall allow users to create and manage high-level classifications for their activities.
+**ID: FR-TAX-01** The system shall allow users to create and manage high-level classifications for their activities.
 
 * **FR-TAX-01.1 (Create):** The system shall allow the user to create a new Category defined by:  
   * **Name:** (Required, e.g., "Work", "Fitness"). Max 50 characters.  
-  * **Color:** (Required) A HEX color code selected via a color picker component.  
-  * **Icon:** (Optional) An emoji or vector icon selected from a predefined library (e.g., EmojiCompat or Material Icons).  
-* **FR-TAX-01.2 (Read):** The system shall display a list of all active categories created by the user.  
-* **FR-TAX-01.3 (Update):** The system shall allow the user to modify the Name, Color, or Icon of an existing category. These changes must retroactively apply to the visual representation of historical records but must not alter the historical data integrity.  
-* **FR-TAX-01.4 (Delete):** The system shall allow the user to delete a category.  
-  * **Constraint:** If the category contains existing Time Records, the system must prompt the user to either: a) Delete all associated records. b) Migrate the records to a different "Uncategorized" or "Archive" category.  
-* **FR-TAX-01.5 (Default Data):** Upon account creation, the system shall initialize the user's account with a set of default categories (e.g., "Work" \[Red\], "Rest" \[Blue\]) to facilitate immediate usage.
+  * **Color:** (Required) A HEX color code. The Unified Frontend must provide a consistent color picker across Web and Mobile.  
+  * **Icon:** (Optional) An icon selected from a standardized vector library (e.g., Material Icons) available within the app bundle.  
+* **FR-TAX-01.2 (Offline Creation):** Users shall be able to create categories while offline. The system must assign a temporary or UUID-based identifier to the category immediately to allow time records to be assigned to it before the server acknowledges the creation.  
+* **FR-TAX-01.3 (Update):** The system shall allow the user to modify the Name, Color, or Icon of an existing category.  
+  * *Visual Consistency:* These changes must retroactively update the visual representation of historical records in the UI (e.g., old "Work" records change from Red to Blue).  
+* **FR-TAX-01.4 (Delete strategy):** The system shall allow the user to delete a category.  
+  * *Constraint:* If the category contains existing Time Records, the system must force a decision:  
+    * **Delete All:** Remove the category and all associated time records.  
+    * **Migrate:** Move all associated records to a different existing category.  
+* **FR-TAX-01.5 (Default Data):** Upon the creation of a new user account, the system shall bootstrap the user's database with a set of default categories (e.g., "Work", "Sleep", "Transport") to facilitate immediate usage.
 
 ## 5.3 Tag Management
 
-**ID:** FR-TAX-02 The system shall allow users to create granular labels (Tags) that can be attached to records, independent of or dependent on categories.
+**ID: FR-TAX-02** The system shall allow users to create granular labels (Tags) that can be attached to records.
 
-* **FR-TAX-02.1:** The system shall allow the creation of Tags defined by a **Name** (Required).  
-* **FR-TAX-02.2:** Tags can optionally be linked to specific Categories (Parent-Child relationship), but the system shall also support global Tags usable across any Category.  
-* **FR-TAX-02.3:** A single Time Record may support multiple Tags (Many-to-Many relationship).
+* **FR-TAX-02.1:** The system shall allow the creation of Tags defined by a Name (Required).  
+* **FR-TAX-02.2:** Tags shall be **Global** by default (usable across any Category) to allow for cross-functional analysis (e.g., a "Deep Work" tag could apply to both "Job" and "Personal Projects" categories).  
+* **FR-TAX-02.3:** A single Time Record may support multiple Tags (Many-to-Many relationship).  
+* **FR-TAX-02.4:** Tags must be searchable and selectable via an autocomplete interface in the Unified Frontend.
 
 ## 5.4 Goals and Limits
 
-**ID:** FR-TAX-03 The system shall allow users to define targets for their time usage.
+**ID: FR-TAX-03** The system shall allow users to define targets for their time usage.
 
 * **FR-TAX-03.1:** The system shall allow the user to set a **Duration Goal** for a specific Category or Tag.  
-  * *Example:* "Work" \-\> Target: 8 Hours / Day.  
-  * *Example:* "Social Media" \-\> Limit: 1 Hour / Day.  
-* **FR-TAX-03.2:** Goals shall be definable on a Daily, Weekly, or Monthly basis.  
-* **FR-TAX-03.3:** The system must track progress against these goals in real-time and provide visual feedback (e.g., a progress bar filling up).
+  * *Target:* (e.g., "At least 8 Hours")  
+  * *Limit:* (e.g., "Max 1 Hour")  
+* **FR-TAX-03.2 (Periodicity):** Goals shall be definable on a Daily, Weekly, or Monthly basis.  
+* **FR-TAX-03.3 (Visual Feedback):** The Client Application must track progress against these goals in real-time using local data.  
+  * *Example:* A progress bar in the dashboard that fills up as the timer runs.  
+* **FR-TAX-03.4 (Timezone Awareness):** Daily goals must reset based on the **User's configured Timezone**, not UTC. If the user has not configured a timezone, the client device's local time is used as the default fallback.
 
-## 5.5 Complex Rules (Automation)
+## 5.5 Automation Rules (Smart Categorization)
 
-**ID:** FR-TAX-04 The system shall provide logic to automate categorization based on context or specific triggers.
+**ID: FR-TAX-04** The system shall provide logic to automate categorization based on context.
 
 * **FR-TAX-04.1:** The system shall allow users to define "If-Then" rules.  
   * *Trigger:* Time of day (e.g., 09:00 \- 17:00).  
   * *Trigger:* Day of week (e.g., Monday-Friday).  
-  * *Action:* Suggest or auto-fill a specific Category (e.g., "Work") when a new timer is started during this window.  
-* **FR-TAX-04.2:** Users shall be able to enable/disable these rules without deleting them.
+  * *Action:* Suggest or auto-select a specific Category (e.g., "Work") when a new timer is started during this window.  
+* **FR-TAX-04.2 (Client-Side Execution):** These rules must be stored in the user's configuration and synced to all devices. The **evaluation** of the rule happens on the Client Device at the moment the user presses "Start."  
+  * *Benefit:* Automation works even if the user is offline.  
+* **FR-TAX-04.3:** Users shall be able to toggle these rules On/Off without deleting the configuration.
 
 ## 5.6 Data Validation and Constraints
 
-**ID:** FR-TAX-05 The system shall enforce logical constraints on configuration data.
+**ID: FR-TAX-05** The system shall enforce logical constraints on configuration data to maintain sync integrity.
 
-* **FR-TAX-05.1:** Category and Tag names must be unique per user (case-insensitive) to prevent duplicate ambiguity.  
-* **FR-TAX-05.2:** A valid Hex color code must always be associated with a Category. If a user does not select one, a random color or a default system color must be assigned.
+* **FR-TAX-05.1 (Uniqueness):** Category and Tag names must be unique per user (case-insensitive).  
+  * *Sync Conflict:* If a user creates "Gym" on Mobile and "GYM" on Web while offline, the Sync Engine must detect this collision upon reconnection and merge them (or prompt the user).  
+* **FR-TAX-05.2 (Sanitization):** All text inputs (Names) must be sanitized to prevent injection attacks (XSS/SQLi) before being stored or synced.  
+* **FR-TAX-05.3 (Color Validity):** The system must ensure a valid Hex color is always assigned. If a user does not select one, a random color from a predefined safe palette is assigned.
 
 ---
 
@@ -422,66 +464,81 @@ All data entities described in this chapter are **user-scoped**, meaning User A 
 
 ## 6.1 Overview
 
-This module details the primary function of the application: the creation and management of time records. The system shall support two distinct methods of data entry: **Real-time Tracking** (via a stopwatch/timer mechanism) and **Manual Entry** (logging historical activity).
+This module details the primary function of the application: the creation and management of time records. The system shall support two distinct methods of data entry: **Real-time Tracking** (stopwatch) and **Manual Entry** (logging history).
 
-Crucially, because this is a cloud-based system, the state of any "Running Timer" must be synchronized across devices. A timer started on the Mobile App must appear as "Running" on the Web Dashboard.
+**Architectural Constraint:** Time tracking must be resilient. A user starting a timer on a subway train (Offline) must have that action preserved and eventually propagated to their desktop when they regain connectivity. To achieve this, all records are identified by client-generated UUIDs, and timestamps are captured based on the **User's Device Time** (normalized to UTC) at the moment of interaction.
 
 ## 6.2 Real-Time Tracking (Running Timers)
 
-**ID:** FR-CORE-01 The system shall allow users to track activity duration in real-time.
+**ID: FR-CORE-01** The system shall allow users to track activity duration in real-time.
 
-* **FR-CORE-01.1 (Start):** The system shall allow the user to start a new timer by selecting a Category.  
-  * The "Start Time" is recorded as the server-synchronized timestamp at the moment of initiation.  
-  * The "End Time" is initially NULL.  
-* **FR-CORE-01.2 (Visual Feedback):** While a timer is active, the interface (Mobile and Web) shall display an incrementing counter showing the elapsed duration (Format: `HH:MM:SS`).  
-* **FR-CORE-01.3 (Concurrency):** The system shall support **Single Active Timer** logic by default.  
-  * If User A starts Timer Y while Timer X is already running, the system shall automatically **Stop** Timer X (setting its End Time to Now) and **Start** Timer Y.  
-  * *Note:* This setting may be configurable (Allow Parallel Timers), but the default behavior acts to prevent unintentional overlaps.  
-* **FR-CORE-01.4 (Stop):** The system shall allow the user to stop a running timer.  
-  * Upon stopping, the system records the "End Time."  
-  * The Running Timer entity is converted into a completed **Time Record** and stored in the history.  
-* **FR-CORE-01.5 (Persistence):** Running timers must persist on the server. If the user closes the browser or the mobile app, the timer continues to run on the backend.
+* **FR-CORE-01.1 (Start):** The system shall allow the user to start a new timer.  
+  * **Timestamp:** The "Start Time" is recorded immediately using the local device clock.  
+  * **State:** The timer state is saved to the Local Database immediately.  
+  * **Optimistic UI:** The UI begins counting up immediately (00:00:01...) without waiting for server confirmation.  
+* **FR-CORE-01.2 (Visual Feedback):** While a timer is active, the interface (Mobile and Web) shall display the elapsed duration.  
+* **FR-CORE-01.3 (Concurrency & Single Active Timer):** The system supports **Single Active Timer** logic by default.  
+  * If User A starts Timer Y while Timer X is running:  
+    1. The system automatically Stops Timer X (End Time \= Now).  
+    2. The system Starts Timer Y.  
+  * *Conflict Note:* If this happens on two offline devices simultaneously, the system will eventually show two records for that period. The user can manually resolve overlap later, but data is never automatically deleted to "fix" overlaps.  
+* **FR-CORE-01.4 (Stop):** The user stops the running timer.  
+  * The "End Time" is recorded.  
+  * The Running Timer entity is converted into a completed Time Record.  
+  * The sync engine queues this "Update" event.  
+* **FR-CORE-01.5 (Persistence):** Running timers must persist across app restarts. If the mobile battery dies while a timer is running, restarting the app should show the timer still running (calculated from the original Start Time).
 
 ## 6.3 Manual Data Entry
 
-**ID:** FR-CORE-02 The system shall allow users to log activities that occurred in the past.
+**ID: FR-CORE-02** The system shall allow users to log activities that occurred in the past.
 
 * **FR-CORE-02.1:** The system shall provide a "Add Record" interface requiring:  
-  * **Category:** Selected from the user's taxonomy.  
-  * **Start Date & Time.**  
-  * **End Date & Time.**  
-  * **Tags:** (Optional).  
-  * **Description/Note:** (Optional text field).  
-* **FR-CORE-02.2 (Validation):** The system must enforce that **End Time \> Start Time**. Negative durations are not permitted.  
-* **FR-CORE-02.3:** The system shall calculate the Duration automatically based on the difference between Start and End times.
+  * Category (Selected from local taxonomy).  
+  * Start Date & Time.  
+  * End Date & Time.  
+  * Tags (Optional).  
+  * Description/Note (Optional).  
+* **FR-CORE-02.2 (Validation):** The system must enforce that End Time \> Start Time. Negative durations are not permitted.  
+* **FR-CORE-02.3:** The Duration is calculated automatically as `End - Start`.
 
 ## 6.4 Record Management (CRUD)
 
-**ID:** FR-CORE-03 The system shall allow users to modify existing historical data.
+**ID: FR-CORE-03** The system shall allow users to modify historical data.
 
-* **FR-CORE-03.1 (Edit):** The system shall allow the user to update any attribute of an existing record (Category, Start Time, End Time, Tags, Notes).  
-  * Changing timestamps must automatically recalculate the Duration.  
-* **FR-CORE-03.2 (Delete):** The system shall allow the user to permanently remove a time record.  
+* **FR-CORE-03.1 (Edit):** The user can update any attribute of an existing record.  
+  * *Sync Logic:* An edit operation sends a "Patch" request to the server.  
+* **FR-CORE-03.2 (Delete):** The user can permanently remove a record.  
+  * *Sync Logic:* This performs a "Soft Delete" locally (marking it as `deleted_at: timestamp`) so the deletion can be synced to the server. Once the server confirms the deletion, the record is removed from local storage.  
 * **FR-CORE-03.3 (Split):** The system shall provide a function to split one record into two.  
-  * *Input:* A split timestamp (must be within the record's range).  
-  * *Result:* Two distinct records with adjusted start/end times preserving the total duration.  
+  * Input: A split timestamp.  
+  * Result: The original record is updated (new end time), and a NEW record is created (new start time).  
 * **FR-CORE-03.4 (Merge):** The system shall provide a function to merge adjacent records.  
-  * *Condition:* Records must be sequential or overlapping.
+  * Condition: Records must be sequential or overlapping.
 
 ## 6.5 Data Export (CSV)
 
-**ID:** FR-CORE-04 The system shall allow users to extract their raw data for external use.
+**ID: FR-CORE-04** The system shall allow users to extract their raw data.
 
-* **FR-CORE-04.1:** The system shall generate a CSV (Comma Separated Values) file containing the user's time records.  
-* **FR-CORE-04.2:** The user shall be able to filter the export by a specific Date Range (e.g., "Last Month").  
-* **FR-CORE-04.3:** The CSV schema shall include columns for: `ID`, `Category`, `Tags`, `Start Time`, `End Time`, `Duration (Seconds)`, `Note`.
+* **FR-CORE-04.1:** The system shall generate a CSV file locally on the client device (using the local database data).  
+  * *Benefit:* Export works offline.  
+* **FR-CORE-04.2:** The user can filter the export by Date Range.  
+* **FR-CORE-04.3:** The CSV schema shall include: ID, Category, Tags, Start Time (ISO 8601), End Time, Duration (Seconds), Note.
 
 ## 6.6 Synchronization and Conflict Resolution
 
-**ID:** FR-CORE-05 The system shall ensure data consistency across the Web and Mobile clients.
+**ID: FR-CORE-05** The system shall ensure data consistency across devices.
 
-* **FR-CORE-05.1:** When a timer status changes (Start/Stop) on one client, the change must be pushed to or polled by other active clients to update the UI.  
-* **FR-CORE-05.2:** In the event of network latency causing conflicting Stop times from two devices, the server shall accept the **first received valid request** and reject or adjust the subsequent request to maintain data integrity.
+* **FR-CORE-05.1 (Source of Truth):**  
+  * The **Server** is the ultimate authority for ID mapping, but the **Client** is the authority for User Actions.  
+* **FR-CORE-05.2 (Running Timer Sync):**  
+  * When a timer is Started on Device A, this state is pushed to the server.  
+  * Device B polls (or receives a push) regarding the active state.  
+  * Device B updates its UI to show "Timer Running (Started on Device A)."  
+* **FR-CORE-05.3 (Conflict Strategy):**  
+  * **Scenario:** Device A edits Record \#1 at 10:00 AM (Offline). Device B edits Record \#1 at 10:05 AM (Online). Device A goes online at 10:10 AM.  
+  * **Resolution:** The system applies a **"Last Client Timestamp Wins"** logic. The edit made at 10:05 AM (Device B) is considered the latest user intent, *unless* Device A's local timestamp for the edit was actually 10:06 AM (even if synced later).  
+  * *Fallback:* If the logic cannot be determined automatically, both versions are kept, and the user is flagged to resolve the duplicate/conflict.  
+* **FR-CORE-05.4 (Identification):** All records created offline are assigned a temporary UUID. Upon sync, the server may assign a permanent ID or confirm the UUID as the permanent ID (depending on DB implementation). The client must update its local mapping if the ID changes.
 
 ---
 
@@ -489,59 +546,65 @@ Crucially, because this is a cloud-based system, the state of any "Running Timer
 
 ## 7.1 Overview
 
-This module defines the requirements for transforming raw time records into actionable insights. The system must replicate the rich visualization capabilities of the reference application (Charts, Graphs, Summaries) but leverage the processing power of the web/backend to render them dynamically. All analytics must be strictly scoped to the authenticated user's data.
+This module defines the requirements for transforming raw time records into actionable insights. To balance device storage limits with reporting depth, the system employs a **Hybrid Data Strategy**:
+
+* **Server-Side Analytics:** Deep historical analysis, aggregation, and complex charting are performed by the server or fetched from the server on-demand.  
+* **Local Cache (Hot Data):** The client device retains full fidelity data for the **most recent 7 days**. This allows for immediate, offline access to the "Timeline View" for the current week, while older data is offloaded to the server to save local storage space.
 
 ## 7.2 The Dashboard
 
-**ID:** FR-ANA-01 The system shall provide a landing view (Dashboard) that offers an immediate snapshot of the current day's performance.
+**ID: FR-ANA-01** The system shall provide a landing view (Dashboard) that offers an immediate snapshot of current performance.
 
-* **FR-ANA-01.1 (Today's Summary):** The dashboard shall display the "Total Time Tracked" for the current day.  
+* **FR-ANA-01.1 (Today's Summary):** The dashboard shall display the "Total Time Tracked" for the current day, calculated from the Local Cache.  
 * **FR-ANA-01.2 (Active Activity):** If a timer is running, the dashboard must prominently display the active Category, elapsed time, and a "Stop" button.  
-* **FR-ANA-01.3 (Recent History):** A list of the 5-10 most recent time records shall be displayed for quick reference or editing.  
-* **FR-ANA-01.4 (Quick Stats):** A simplified daily breakdown (e.g., a small Pie Chart) showing the distribution of today's time across top Categories.
+* **FR-ANA-01.3 (Recent History):** The most recent records (from the last 7 days) are displayed from local storage.  
+* **FR-ANA-01.4 (Quick Stats):** A simplified daily breakdown for "Today" is generated locally.
 
-## 7.3 Statistical Charts
+## 7.3 Statistical Charts (Server-Driven)
 
-**ID:** FR-ANA-02 The system shall provide a dedicated "Statistics" or "Reports" view offering detailed visualizations.
+**ID: FR-ANA-02** The system shall provide a dedicated "Statistics" view. Because statistical analysis may span months or years, these visualizations rely on server-side data fetching.
 
-* **FR-ANA-02.1 (Pie Chart \- Distribution):**  
-  * The system shall generate a Pie or Donut chart showing the percentage of time spent per Category.  
-  * *Interaction:* Clicking a slice (Category) should drill down to show the distribution of **Tags** within that Category.  
-* **FR-ANA-02.2 (Bar Chart \- Trends):**  
-  * The system shall generate a Bar Chart comparing total duration over time.  
-  * *X-Axis:* Time Unit (Days, Weeks, Months).  
-  * *Y-Axis:* Duration (Hours).  
-  * *Grouping:* Bars should be stacked or grouped by Category to show composition.  
-* **FR-ANA-02.3 (Line Chart \- Progress):**  
-  * The system shall display a Line Chart to visualize trends for specific Categories/Goals (e.g., "Work hours" trending up or down over the month).
+* **FR-ANA-02.1 (Data Fetching):** When the user accesses the "Statistics" tab:  
+  * **Online:** The client requests aggregated data (JSON) from the server for the selected range.  
+  * **Offline:** The system displays a "Connect to internet to view historical statistics" message, or serves data strictly limited to the cached 7-day window.  
+* **FR-ANA-02.2 (Chart Types):**  
+  * **Pie Chart:** Distribution of time by Category.  
+  * **Bar Chart:** Trends of duration over days/weeks.  
+  * **Line Chart:** Progress trends for specific goals.
 
-## 7.4 Data Filtering
+## 7.4 Data Filtering & Saved Views
 
-**ID:** FR-ANA-03 The system shall allow users to customize the data scope for all analytics widgets.
+**ID: FR-ANA-03** The system shall allow users to customize reporting scopes and save their preferences.
 
-* **FR-ANA-03.1 (Time Range Selector):** Users shall be able to filter data by:  
-  * Predefined ranges: Today, Yesterday, This Week, Last Week, This Month, Last Month, This Year.  
-  * Custom range: User selects specific `Start Date` and `End Date`.  
-* **FR-ANA-03.2 (Category Filter):** Users shall be able to include or exclude specific Categories from the analysis (e.g., "Show me everything except 'Sleep'").  
-* **FR-ANA-03.3 (Tag Filter):** Users shall be able to filter records containing specific Tags.
+* **FR-ANA-03.1 (Time Range):** Predefined ranges (Today, Week, Month, Year) and Custom Date Pickers.  
+* **FR-ANA-03.2 (Attribute Filters):** Users can filter by Category or Tag.  
+* **FR-ANA-03.3 (Text Filter):** Users can filter records by **Name/Description** (e.g., "Show all records containing 'Project X'").  
+* **FR-ANA-03.4 (Predefined Filters / Saved Views):**  
+  * The system shall allow users to **Save** a specific combination of filters (e.g., "Category: Work" \+ "Tag: Deep Work").  
+  * The system shall provide a list of these "Saved Filters" for one-click access.  
+  * *Default Filters:* The system comes with "Work Only" and "Personal Only" defaults if applicable.
 
-## 7.5 Timeline View
+## 7.5 Timeline View (Local & Offline)
 
-**ID:** FR-ANA-04 The system shall provide a chronological visualization of the day.
+**ID: FR-ANA-04** The system shall provide a chronological visualization of the day, optimized for recent history.
 
-* **FR-ANA-04.1:** The system shall render a vertical or horizontal timeline representing the 24-hour day.  
-* **FR-ANA-04.2:** Time records shall be plotted as colored blocks on this timeline, with the color corresponding to the Category.  
-* **FR-ANA-04.3:** "Gaps" (untracked time) shall be visually distinct (e.g., gray or transparent), making it easy for users to identify missing data.
+* **FR-ANA-04.1 (Caching Policy):** The Client Application shall maintain a **7-Day Rolling Cache** of detailed time records stored locally.  
+  * *Constraint:* Accessing the Timeline for a date older than 7 days requires a network request to fetch that day's data.  
+* **FR-ANA-04.2 (Offline Availability):** Users must be able to view, scroll, and interact with the Timeline for the **current week** (Today \+ past 6 days) while completely offline.  
+* **FR-ANA-04.3 (Visualization):**  
+  * Vertical/Horizontal rendering of the 24-hour day.  
+  * Visual "Gaps" for untracked time.  
+  * Visual indicators for overlapping records.
 
 ## 7.6 Reporting Logic
 
-**ID:** FR-ANA-05 The system shall perform calculations on the server or client to ensure accuracy.
+**ID: FR-ANA-05** The system shall handle data aggregation logic.
 
-* **FR-ANA-05.1:** All durations must be calculated in a base unit (e.g., seconds or milliseconds) and formatted for display (e.g., `1h 30m`).  
-* **FR-ANA-05.2:** When a record spans across two days (e.g., sleeping from 11:00 PM to 7:00 AM), the analytics engine must strictly split the duration:  
-  * 1 hour assigned to Day 1\.  
-  * 7 hours assigned to Day 2\.  
-  * *Note:* This ensures "Daily Total" stats never exceed 24 hours.
+* **FR-ANA-05.1 (Server Aggregation):** For heavy queries (e.g., "Last Year's Stats"), the server performs the `SUM()` and `GROUP BY` operations and sends lightweight JSON results to the client, rather than sending thousands of raw records.  
+* **FR-ANA-05.2 (Visual Splitting):** The visualization layer (both Client timeline and Server charts) must logically split records that span across midnight (e.g., 11 PM to 1 AM counts as 1hr Today, 1hr Tomorrow).  
+* **FR-ANA-05.3 (Timezone Normalization):**  
+  * **Local Timeline:** Renders based on Device Time.  
+  * **Server Charts:** The client must send the User's Current Timezone (e.g., `America/New_York`) in the API request so the server can aggregate "Days" correctly relative to the user.
 
 ---
 
@@ -551,50 +614,61 @@ This module defines the requirements for transforming raw time records into acti
 
 This module encompasses the configuration options available to the user to customize their experience, as well as the technical behaviors required to maintain state consistency across the Web and Mobile platforms.
 
+Crucially, this module defines the **Synchronization Strategy** that bridges the gap between the Offline-Capable Client (with its 7-day cache) and the Central Server (the complete history).
+
 ## 8.2 Application Interface Settings
 
-**ID:** FR-SET-01 The system shall allow users to personalize the visual presentation of the application.
+**ID: FR-SET-01** The system shall allow users to personalize the visual presentation of the application.
 
-* **FR-SET-01.1 (Theme):** The system shall support a **Dark Mode** and **Light Mode**.  
-  * *Default:* Match the user's OS/System preference.  
-  * *Override:* User can manually select "Dark", "Light", or "System" in settings.  
-* **FR-SET-01.2 (Localization):** The system shall support multiple languages (starting with English).  
-  * The UI must be capable of rendering translated strings for all labels and messages.  
-  * Date and Time formats (e.g., `MM/DD/YYYY` vs `DD/MM/YYYY`, 12h vs 24h clock) must adapt to the selected locale.  
-* **FR-SET-01.3 (Start of Week):** The system shall allow users to define which day represents the start of the week (e.g., Monday or Sunday) for the purpose of "Weekly" statistics calculation.
+* **FR-SET-01.1 (Theme):** Support for Dark Mode, Light Mode, and System Default.  
+* **FR-SET-01.2 (Localization):**  
+  * **Language:** The UI must support multiple languages.  
+  * **Time Format:** Users can toggle between 12-hour (AM/PM) and 24-hour clock formats. This setting applies to the Timeline View and Input fields.  
+* **FR-SET-01.3 (Start of Week):** Users can define the first day of the week (e.g., Monday vs. Sunday) for statistical aggregation.
 
 ## 8.3 Notification Settings
 
-**ID:** FR-SET-02 The system shall provide configurable alerts to keep the user engaged.
+**ID: FR-SET-02** The system shall provide configurable alerts.
 
-* **FR-SET-02.1 (Timer Reminders):** The user shall be able to enable notifications if a timer has been running for an excessive duration (e.g., "Timer running for \> 4 hours").  
-* **FR-SET-02.2 (Goal Alerts):** The system shall trigger a notification when a defined Goal is reached (e.g., "You have reached your 8-hour Work goal").  
-* **FR-SET-02.3 (Channel Management):**  
-  * **Mobile:** Native Push Notifications.  
-  * **Web:** Browser Desktop Notifications (requiring permission).  
-  * Users must have the ability to toggle these independently.
+* **FR-SET-02.1 (Timer Reminders):** Local notifications triggered if a timer exceeds a specific duration (e.g., "Timer running \> 4 hours").  
+* **FR-SET-02.2 (Goal Alerts):** Local notifications when a daily Goal is reached.  
+* **FR-SET-02.3 (Sync Alerts):**  
+  * **Sync Failure:** If the app has been unable to sync with the server for \> 24 hours (while the device has a network connection), a warning notification should appear.
 
-## 8.4 Synchronization Logic
+## 8.4 Synchronization Logic (The Sync Engine)
 
-**ID:** FR-SET-03 The system shall ensure that data remains consistent across multiple active sessions.
+**ID: FR-SET-03** The system shall ensure data remains consistent between the Local Cache and the Server.
 
-* **FR-SET-03.1 (State Propagation):**  
-  * If a user starts a timer on **Mobile**, the **Web** dashboard must reflect this change (show the running timer) within a reasonable latency (e.g., \< 5 seconds) without requiring a full page refresh.  
-  * *Implementation Suggestion:* This may be achieved via Polling (periodic API checks) or WebSockets (Push).  
-* **FR-SET-03.2 (Conflict Resolution \- Last Write Wins):**  
-  * If a user modifies the *same* record on two devices simultaneously while offline, and then both reconnect:  
-  * The server shall accept the timestamp of the latest update request and overwrite the previous state.  
-* **FR-SET-03.3 (Offline Handling \- Mobile):**  
-  * The Mobile App shall allow starting/stopping timers while offline.  
-  * These actions must be queued locally.  
-  * Upon re-establishing connectivity, the app must automatically sync the queue to the backend.
+* **FR-SET-03.1 (Sync Frequency):**  
+  * **Background Sync:** The app shall attempt to sync every X minutes (e.g., 15 mins) when the app is in the background.  
+  * **Foreground Sync:** The app shall trigger an immediate sync upon App Launch and Resume.  
+  * **Event-Driven:** Every "Stop Timer" or "Save Record" action triggers an immediate attempt to push changes.  
+* **FR-SET-03.2 (Data Retention / Caching Policy):**  
+  * **Local Storage Limit:** To keep the mobile app lightweight, the Local Database shall strictly maintain full details for the **last 7 days** (Rolling Window).  
+  * **Pruning:** During a successful sync, records older than 7 days are confirmed as "Safe on Server" and then purged from the Local Database.  
+  * **Fetch on Demand:** If the user scrolls back to a date \> 7 days ago in the Timeline, the app performs a temporary fetch for that specific day's data.  
+* **FR-SET-03.3 (Conflict Resolution \- Last Client Timestamp):**  
+  * If a record is modified on two devices, the server compares the `updated_at` timestamp **generated by the client device**.  
+  * The latest timestamp wins.  
+* **FR-SET-03.4 (Server Connectivity):**  
+  * The Settings menu must display a "Sync Status" indicator (e.g., "Last Synced: 2 mins ago" or "Offline").
 
-## 8.5 Data Maintenance
+## 8.5 Data Maintenance & Privacy
 
-**ID:** FR-SET-04 The system shall provide tools for data hygiene.
+**ID: FR-SET-04** The system shall provide tools for data hygiene and portability.
 
-* **FR-SET-04.1 (Export All):** A global "Export Data" button in settings to download a comprehensive JSON or CSV dump of the user's entire history (GDPR portability requirement).  
-* **FR-SET-04.2 (Reset Account):** A specific danger-zone action to "Delete All Records" while keeping the user account and categories intact.
+* **FR-SET-04.1 (Export All):** A global "Export Data" button.  
+  * *Source:* This request is processed by the **Server**, which generates a full history CSV/JSON file and sends a download link to the user (bypassing the 7-day local limit).  
+* **FR-SET-04.2 (Reset Local Cache):** A "Troubleshooting" option to wipe the local database and re-fetch the fresh 7-day window from the server.  
+* **FR-SET-04.3 (Delete Account):** As defined in IAM, this permanently removes all data from the Server.
+
+## 8.6 Admin / Self-Hosted Configuration (Web Only)
+
+**ID: FR-SET-05** Configuration specific to the instance owner.
+
+* **FR-SET-05.1 (Registration):** Toggle "Allow Public Registration" On/Off.  
+* **FR-SET-05.2 (SMTP Settings):** Configure Host, Port, User, and Password for transactional emails (Password Reset/Verification).  
+* **FR-SET-05.3 (System Logs):** View a basic log of system events (User Logins, Sync Errors, Warnings).
 
 ---
 
@@ -602,113 +676,152 @@ This module encompasses the configuration options available to the user to custo
 
 ## 9.1 Overview
 
-This chapter defines the quality attributes, performance constraints, and technical standards that the system must adhere to. These requirements ensure the system is usable, secure, and scalable.
+This chapter defines the quality attributes, performance constraints, and high-level standards that the system must adhere to. These requirements ensure the system is usable, secure, and scalable, whether hosted on a powerful cloud cluster or limited consumer hardware.
 
 ## 9.2 Security Requirements
 
-**ID:** NFR-SEC The system must protect user data and maintain the integrity of the application.
+**ID: NFR-SEC** The system must protect user data and maintain the integrity of the application.
 
-* **NFR-SEC-01 (Encryption in Transit):** All communications between Clients (Web/Mobile) and the Server must occur over **HTTPS** using TLS 1.2 or higher. Unencrypted HTTP traffic must be rejected or redirected.  
-* **NFR-SEC-02 (Password Storage):** User passwords must never be stored in plain text. They must be salted and hashed using a strong algorithm (e.g., **Argon2id** or **Bcrypt** with an appropriate work factor).  
-* **NFR-SEC-03 (Data Isolation):** The database queries must strictly enforce tenancy checks. A query for "Time Records" must always include a `WHERE user_id = X` clause to prevent data leakage between users.  
-* **NFR-SEC-04 (Token Security):** Authentication tokens (JWT) should have a short expiration time (e.g., 15 minutes). Refresh tokens should be stored securely (e.g., `HttpOnly` cookies for Web, Encrypted KeyStore for Mobile).  
-* **NFR-SEC-05 (Input Validation):** The API must sanitize all inputs to prevent SQL Injection and Cross-Site Scripting (XSS) attacks.
+* **NFR-SEC-01 (Encryption):** All data transmitted between the Client and the Server must be protected using secure, encrypted communication channels to prevent interception.  
+* **NFR-SEC-02 (Credential Storage):** User passwords must never be stored in plain text. They must be protected using strong, industry-standard irreversible hashing algorithms.  
+* **NFR-SEC-03 (Data Isolation):** The system must enforce strict logical separation of data. It must be impossible for an authenticated user to access, view, or modify data belonging to another user through API manipulation.  
+* **NFR-SEC-04 (Abuse Prevention):** The API must implement mechanisms to detect and mitigate abusive traffic patterns (e.g., rate limiting) to protect the availability of self-hosted instances.  
+* **NFR-SEC-05 (Input Validation):** All user-supplied input must be validated and sanitized to prevent common injection attacks and malicious payload execution.
 
 ## 9.3 Performance Requirements
 
-**ID:** NFR-PERF The system must provide a responsive user experience.
+**ID: NFR-PERF** The system must provide a responsive user experience.
 
-* **NFR-PERF-01 (API Latency):** 95% of standard API requests (e.g., Start Timer, Fetch Today's Records) should complete in under **200 milliseconds** (excluding network latency).  
-* **NFR-PERF-02 (App Load Time):** The Web Application (First Contentful Paint) should load in under **1.5 seconds** on a standard 4G connection.  
-* **NFR-PERF-03 (Dashboard Rendering):** The dashboard, including statistical charts, must render within **1 second** of data retrieval, even for users with \>10,000 historical records.
+* **NFR-PERF-01 (Responsiveness):** Critical user actions (e.g., Starting/Stopping a timer) must provide immediate visual feedback to the user, regardless of network latency or background processing status.  
+* **NFR-PERF-02 (Startup Speed):** The Mobile Client must load the Dashboard and become interactive within a minimal timeframe appropriate for a productivity tool (e.g., under 1.5 seconds) using cached data.  
+* **NFR-PERF-03 (Sync Latency):** When connectivity is available, data changes made on one device should propagate to other active devices within a reasonable timeframe (e.g., near real-time) to ensure workflow continuity.  
+* **NFR-PERF-04 (Efficiency):** The Client Application must minimize battery and data consumption by optimizing background synchronization processes.
 
-## 9.4 Scalability and Reliability
+## 9.4 Scalability and Hosting
 
-**ID:** NFR-SCALE The system must be able to grow with the user base.
+**ID: NFR-HOST** The system must be lightweight and portable to support self-hosting.
 
-* **NFR-SCALE-01 (Concurrency):** The backend architecture should support at least **1,000 concurrent active users** (users actively starting/stopping timers simultaneously) in the MVP phase.  
-* **NFR-SCALE-02 (Availability):** The system shall aim for **99.9% uptime** during business hours. Planned maintenance should be scheduled during low-traffic windows.  
-* **NFR-SCALE-03 (Database Growth):** The database schema must be indexed appropriately to handle millions of rows in the `time_records` table without significant query degradation.
+* **NFR-HOST-01 (Portability):** The backend system must be packaged in a format that supports standard containerization technologies, allowing deployment on diverse operating systems without complex dependency management.  
+* **NFR-HOST-02 (Resource Efficiency):** The application server must be designed to operate efficiently on low-resource hardware (e.g., consumer-grade servers or single-board computers) without excessive memory or CPU consumption.  
+* **NFR-HOST-03 (Storage Flexibility):** The system must support abstraction for the data storage layer, allowing the use of different database technologies suited for either single-user lightweight setups or multi-user production environments.
 
-## 9.5 Usability and Accessibility
+## 9.5 Reliability and Availability
 
-**ID:** NFR-USE The system must be easy to use and accessible to a broad audience.
+**ID: NFR-REL** The system must remain robust during network instability.
 
-* **NFR-USE-01 (Mobile Responsiveness):** The Web Application must be fully responsive and functional on mobile browsers, adapting its layout to smaller screens.  
-* **NFR-USE-02 (Accessibility):** The Web Interface should comply with **WCAG 2.1 Level AA** standards (e.g., proper contrast ratios, keyboard navigation support, ARIA labels for screen readers).  
-* **NFR-USE-03 (Simplicity):** The critical path ("Start a Timer") must be achievable in **2 clicks/taps** or fewer from the landing screen.
+* **NFR-REL-01 (Offline Continuity):** The system must remain fully functional during network outages. Synchronization failures must be handled gracefully with automatic retry mechanisms.  
+* **NFR-REL-02 (Conflict Preservation):** In the event of a data synchronization conflict that cannot be resolved automatically by business logic, the system must prioritize data safety, preserving conflicting versions rather than overwriting data without user confirmation.
 
-## 9.6 Compliance
+## 9.6 Usability and Accessibility
 
-**ID:** NFR-COMP The system must adhere to legal standards.
+**ID: NFR-USE** The system must be easy to use.
 
-* **NFR-COMP-01 (GDPR):** The system must support the "Right to be Forgotten" (Account Deletion) and "Right to Access" (Data Export) as defined in Chapters 4 and 8\.  
-* **NFR-COMP-02 (Cookie Policy):** The Web Application must display a cookie consent banner if tracking or non-essential cookies are utilized.
+* **NFR-USE-01 (Interface Adaptability):** The Web Interface must automatically adapt its layout and functionality to suit the screen size and input method of the device (Mobile, Tablet, or Desktop).  
+* **NFR-USE-02 (Accessibility Standards):** The interface should adhere to recognized accessibility standards (e.g., WCAG) to ensure usability for individuals with disabilities, including proper contrast and navigation support.  
+* **NFR-USE-03 (Workflow Efficiency):** Critical productivity actions must require minimal user interaction steps to perform.
 
+## 9.7 Compliance
+
+**ID: NFR-COMP**
+
+* **NFR-COMP-01 (Data Sovereignty):** The system must provide mechanisms for users to extract their complete dataset in a standard, machine-readable format.  
+* **NFR-COMP-02 (Data Erasure):** The system must support the permanent removal of all personally identifiable information and user-generated content upon account deletion.
+
+## 9.8 Operations and Monitoring
+
+**ID: NFR-OPS** The system must provide observability tools for the instance administrator to ensure health and diagnose issues.
+
+* **NFR-OPS-01 (Backend Log Aggregation):** The Application Server must output structured operational logs (Access Logs, Application Errors, System Events) to standard output streams. This allows container orchestration tools or external agents to capture and aggregate logs without proprietary configuration.  
+* **NFR-OPS-02 (Client-Side Error Reporting):** The Web and Mobile clients must include a mechanism to catch unhandled exceptions (crashes).  
+  * *Connectivity:* If online, the error stack trace is reported to the server immediately.  
+  * *Offline:* The error is queued locally and transmitted to the server upon reconnection.  
+* **NFR-OPS-03 (Health Supervision):** The system must expose dedicated "Health Check" endpoints (e.g., Liveness and Readiness probes) to allow monitoring tools to verify that the API and Database connections are active and responsive.  
+* **NFR-OPS-04 (Log Privacy):** The logging system must automatically redact sensitive information (e.g., Passwords, Auth Tokens, PII) before writing to the logs to ensure that administrative review of logs does not compromise user security.
+
+   
 ---
+
 # Chapter 10: Data Requirements
 
 ## 10.1 Overview
-This chapter specifies the logical data model, data persistence rules, and the standard formats required for data exchange between the Client and Server. It serves as a guide for database design and API development.
+
+This chapter specifies the logical data model, persistence rules, and the standard formats required for data exchange.
+
+**Architectural Context:** The system operates on a **Master-Replica** model.
+
+* **The Server Database:** Acts as the "Master" and "Source of Truth," storing the complete history of all data indefinitely (unless deleted). It must be agnostic to the underlying engine (supporting SQLite, PostgreSQL, or MySQL via abstraction).  
+* **The Client Database:** Acts as a partial "Replica," storing a **7-Day Rolling Window** of data for performance and offline access, plus any unsynced changes.
 
 ## 10.2 Data Entities (Conceptual Schema)
-**ID:** DATA-MODEL
-The system shall maintain the following core data entities and their relationships.
+
+**ID: DATA-MODEL** The system shall maintain the following core entities. All entities must use **UUIDs (Universally Unique Identifiers)** as Primary Keys to enable offline generation without collision.
 
 ### 10.2.1 User
+
 Represents an identity within the system.
-*   **Attributes:** `User_ID` (PK), `Email`, `Password_Hash`, `Role` (Standard/Admin), `Created_At`, `Last_Login`, `Settings_JSON` (Preferences).
-*   **Cardinality:** A User can own multiple Categories, Tags, and Records.
+
+* **Attributes:** `User_UUID` (PK), `Email`, `Password_Hash`, `Role` (Standard/Admin), `Timezone` (e.g., "America/New\_York"), `Is_Verified` (Boolean), `Created_At`.  
+* **Purpose:** Stores authentication data and preferences. The `Timezone` is critical for accurate server-side daily aggregation.
 
 ### 10.2.2 Category
+
 A classification bucket for time records.
-*   **Attributes:** `Category_ID` (PK), `User_ID` (FK), `Name`, `Hex_Color`, `Icon_ID`, `Is_Archived`.
-*   **Constraints:** `User_ID` + `Name` must be unique (A user cannot have two "Work" categories).
+
+* **Attributes:** `Category_UUID` (PK), `User_UUID` (FK), `Name`, `Hex_Color`, `Icon_ID`, `Is_Deleted` (Boolean), `Last_Modified_At`.  
+* **Constraint:** `User_UUID` \+ `Name` must be unique among active (non-deleted) categories.
 
 ### 10.2.3 Tag
+
 A granular label.
-*   **Attributes:** `Tag_ID` (PK), `User_ID` (FK), `Name`.
+
+* **Attributes:** `Tag_UUID` (PK), `User_UUID` (FK), `Name`, `Is_Deleted` (Boolean).
 
 ### 10.2.4 Time Record
-A completed block of tracked time.
-*   **Attributes:** `Record_ID` (PK), `User_ID` (FK), `Category_ID` (FK), `Start_Timestamp`, `End_Timestamp`, `Duration` (Computed), `Note` (Text).
-*   **Relationships:** Many-to-Many relationship with **Tag**.
 
-### 10.2.5 Running Timer
-Represents the currently active activity.
-*   **Attributes:** `Timer_ID` (PK), `User_ID` (FK), `Category_ID` (FK), `Start_Timestamp`.
-*   **Constraints:** A User should ideally have only one active Running Timer at a time (enforced by application logic).
+A completed or active block of tracked time.
 
-## 10.3 Data Integrity and Constraints
-**ID:** DATA-INT
-The database must enforce strict rules to maintain data quality.
+* **Attributes:** `Record_UUID` (PK), `User_UUID` (FK), `Category_UUID` (FK), `Start_Timestamp` (UTC), `End_Timestamp` (UTC, Nullable), `Duration` (Computed), `Note` (Text), `Is_Deleted` (Boolean), `Last_Modified_At` (UTC).  
+* **Sync Logic:** `End_Timestamp` being NULL indicates a **Running Timer**.
 
-*   **DATA-INT-01 (Referential Integrity):**
-    *   If a **User** is deleted, all associated Categories, Tags, and Records must be deleted (Cascade Delete).
-    *   If a **Category** is deleted, the system logic defined in **FR-TAX-01.4** applies (User must choose to delete records or reassign them).
-*   **DATA-INT-02 (Timestamps):**
-    *   All timestamps stored in the database must be in **UTC**.
-    *   Conversion to the user's Local Time Zone must happen at the Client (Frontend) layer.
-*   **DATA-INT-03 (Precision):** Time records should store precision down to the **second** or **millisecond**, depending on the database capability.
+### 10.2.5 Sync Queue (Client-Side Only)
+
+A local structure used to track changes made while offline.
+
+* **Attributes:** `Operation_Type` (CREATE, UPDATE, DELETE), `Entity_Type` (Record, Category), `Entity_UUID`, `Payload` (JSON), `Timestamp`.
+
+## 10.3 Data Integrity and Synchronization Rules
+
+**ID: DATA-INT** The database must enforce strict rules to maintain data quality across distributed devices.
+
+* **DATA-INT-01 (UUID Strategy):** Clients shall generate UUIDs (v4) locally when creating new Records, Categories, or Tags. The Server accepts these UUIDs. This prevents the need for a server round-trip just to get an ID.  
+* **DATA-INT-02 (Soft Deletes):** To ensure deletions propagate to other devices, records must not be physically removed from the Server immediately.  
+  * **Action:** Setting `Is_Deleted = True` and updating `Last_Modified_At`.  
+  * **Sync:** When other clients pull updates, they receive this "Tombstone" and remove the item from their local UI/Storage.  
+* **DATA-INT-03 (Timezone Normalization):**  
+  * **Storage:** All timestamps (Start/End) must be stored in **UTC**.  
+  * **Display:** The Client converts UTC to the user's Local Device Time.  
+  * **Aggregation:** Server-side reports convert UTC to the `User.Timezone` before grouping by "Day."  
+* **DATA-INT-04 (Referential Integrity):** The database schema must enforce Foreign Keys (e.g., A Record cannot exist without a User).
 
 ## 10.4 Data Retention and Archiving
-**ID:** DATA-RET
 
-*   **DATA-RET-01:** User data shall be retained indefinitely as long as the account is active.
-*   **DATA-RET-02:** Upon the initiation of a "Hard Delete" (Account Deletion), data must be purged from the live database immediately.
-*   **DATA-RET-03:** Backups of the database shall be retained for a specific period (e.g., 30 days) for disaster recovery purposes.
+**ID: DATA-RET**
+
+* **DATA-RET-01 (Server Retention):** The Server retains user data indefinitely to serve as the backup and history provider.  
+* **DATA-RET-02 (Client Pruning):** The Client Application shall enforce a **7-Day Retention Policy** for "Time Record" entities to minimize local storage usage.  
+  * *Logic:* On successful sync, records with `End_Timestamp < (Now - 7 Days)` are purged from local storage, provided they are confirmed saved on the Server.  
+  * *Exception:* Metadata (Categories, Tags) are always kept locally to ensure the user can categorize new inputs.  
+* **DATA-RET-03 (Hard Delete):** Upon "Account Deletion," the Server must perform a physical `DELETE` of all rows associated with the `User_UUID`.
 
 ## 10.5 API Interface Standards
-**ID:** DATA-API
-The Client-Server communication shall adhere to strict formatting standards.
 
-*   **DATA-API-01 (Format):** All API responses shall be in **JSON** (JavaScript Object Notation) format.
-*   **DATA-API-02 (Date Format):** All dates and times transmitted via API must follow the **ISO 8601** standard (e.g., `2023-10-27T10:00:00Z`).
-*   **DATA-API-03 (Status Codes):** The API shall return appropriate HTTP Status Codes:
-    *   `200 OK`: Successful request.
-    *   `201 Created`: Successful creation of a resource.
-    *   `400 Bad Request`: Validation failure (e.g., Missing email).
-    *   `401 Unauthorized`: Missing or invalid authentication token.
-    *   `403 Forbidden`: Authenticated, but lacking permission (e.g., Standard User trying to delete another user).
-    *   `404 Not Found`: Resource does not exist.
-    *   `500 Internal Server Error`: Unhandled server exception.
+**ID: DATA-API** The Client-Server communication shall adhere to strict formatting standards.
+
+* **DATA-API-01 (Protocol):** The API shall be **RESTful**, utilizing standard HTTP verbs (GET, POST, PUT, PATCH, DELETE).  
+* **DATA-API-02 (Format):** All request bodies and response payloads shall be strictly formatted as **JSON**.  
+* **DATA-API-03 (Date Standard):** All timestamps transmitted via API must follow the **ISO 8601** standard (e.g., `2023-10-27T14:30:00Z`).  
+* **DATA-API-04 (Pagination):** Endpoints returning lists (e.g., `GET /api/v1/records`) must support pagination (Limit/Offset or Cursor-based) to prevent memory overload on the self-hosted server when fetching large histories.  
+* **DATA-API-05 (Error Responses):** Errors must return a structured JSON object containing:  
+  * `error_code`: Machine-readable string (e.g., `AUTH_INVALID_TOKEN`).  
+  * `message`: Human-readable description.  
+  * `details`: Optional field for validation errors.
