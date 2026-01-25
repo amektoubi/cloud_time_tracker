@@ -1,2214 +1,1096 @@
-## **Technical Architecture and Design Document – Chapter Summary**
+# Design and Architecture Document: Time Tracker System
 
-### **Chapter 1: Introduction**
+## 1\. Introduction
 
-- **Purpose**: Define the scope, goals, and audience of the architecture document.  
-- **System Context**: Position the Cloud Time Tracker within the broader ecosystem (users, devices, cloud infrastructure).  
-- **Document Conventions**: Notation (UML, C4 model), terminology, versioning.  
-- **References**: Link to FRD, style guides, Quarkus/React documentation.
+### 1.1 Purpose of This Document
 
----
+### 1.2 Scope
 
-### **Chapter 2: Architectural Overview**
+### 1.3 Definitions, Acronyms, and Abbreviations
 
-- **Architectural Style**: Client–Server with RESTful API; stateless backend.  
-- **High-Level Component Diagram**:  
-  - **Frontend Layer**: Shared React+Vite codebase → compiled to Web (SPA) and Mobile (via Capacitor or React Native).  
-  - **Backend Layer**: Quarkus (Java) microservice exposing REST APIs.  
-  - **Persistence Layer**: Abstracted data access supporting both **SQLite** (for local/dev/offline) and **PostgreSQL** (cloud production).  
-- **Deployment View**: Cloud-hosted (e.g., AWS ECS/EKS or bare VM), CDN for static assets, database hosted separately.
+### 1.4 References
 
----
+### 1.5 Document Conventions
 
-### **Chapter 3: Technology Stack & Constraints**
+## 2\. Architectural Goals, Constraints, and Technology Stack
 
-- **Frontend**:  
-  - Framework: **React \+ Vite**  
-  - Cross-platform strategy: **Capacitor** (preferred for shared codebase) or **React Native** (if native performance needed).  
-  - State management: Zustand/Jotai (lightweight, SSR-friendly).  
-- **Backend**:  
-  - Runtime: **Quarkus** (GraalVM native support optional)  
-  - Language: **Java 17+**  
-  - Build: Maven  
-- **Database Abstraction**:  
-  - Use **Hibernate ORM with dialect switching** or **MyBatis** for SQL portability.  
-  - Configuration-driven DB selection (`quarkus.datasource.db-kind=postgresql` or `sqlite`).  
-- **Authentication**: JWT \+ Refresh tokens (stateless sessions).  
-- **Build & CI/CD**: GitHub Actions / GitLab CI; Docker images for backend; Vite builds for frontend.
+### 2.1 Quality Attribute Scenarios
 
----
+### 2.2 Key Design Principles
 
-### **Chapter 4: System Decomposition (Modules & Components)**
+### 2.3 Technical and Operational Constraints
 
-Map each FRD module to technical components:
+### 2.4 Selected Technology Stack
 
-- **IAM Service**: AuthController, UserService, RBAC middleware.  
-- **Taxonomy Service**: CategoryService, TagService, GoalEngine.  
-- **TimeTracking Core**: TimerService, RecordService, ConflictResolver.  
-- **Analytics Engine**: AggregationService, ChartDataGenerator.  
-- **Sync & Notification Manager**: WebSocket or polling-based sync layer; Push notification adapter (Firebase for mobile, Browser API for web).
+## 3\. High-Level Architecture Overview
 
-Each component includes:
+### 3.1 Architectural Style(s) Used
 
-- Responsibilities  
-- Input/Output contracts  
-- Dependencies
+### 3.2 Context Diagram
 
----
+### 3.3 Container Diagram
 
-### **Chapter 5: Data Architecture**
+## 4\. Component Architecture
 
-- **Logical Data Model**: ER diagram based on FRD Chapter 10 (User, Category, Tag, TimeRecord, RunningTimer).  
-- **Physical Schema per DB**:  
-  - **PostgreSQL**: Optimized for concurrency, indexing on `user_id`, `start_timestamp`.  
-  - **SQLite**: Embedded mode; same schema but relaxed constraints (e.g., no native UUID).  
-- **Multi-Tenancy Strategy**: Row-level isolation via `user_id` in every query (no shared schemas).  
-- **UTC Everywhere**: All timestamps stored in UTC; timezone conversion in frontend.  
-- **Migration Strategy**: Flyway or Liquibase with conditional scripts per DB type.
+### 4.1 Client Layer
 
----
+### 4.2 Application Server
 
-### **Chapter 6: API Specification**
+### 4.3 Data Layer
 
-- **RESTful Contract** (OpenAPI 3.0):  
-  - `/auth/login`, `/users/me`, `/categories`, `/records`, `/records/export`  
-- **Request/Response Examples**: JSON payloads matching FRD data formats.  
-- **Error Handling**: Standardized error responses (code, message, field).  
-- **Security**: JWT in `Authorization: Bearer <token>`; rate limiting.
+### 4.4 Component Diagram
 
----
+## 5\. Data Architecture
 
-### **Chapter 7: Cross-Platform Strategy (Web \+ Mobile)**
+### 5.1 Conceptual Data Model
 
-- **Code Sharing Approach**:  
-  - Shared logic (business rules, validation, API clients) in a **common TypeScript package**.  
-  - Platform-specific UI wrappers (e.g., `<TimerButton />` renders native button on mobile, HTML button on web).  
-- **State Sync Mechanism**:  
-  - **Real-time**: Optional WebSocket for timer sync; fallback to polling (every 5s).  
-  - **Offline Support (Mobile)**: Local SQLite queue → background sync on connectivity restore.  
-- **UI Consistency**: Shared design system (CSS variables, icon library, theme context).
+### 5.2 Logical Data Schema
 
----
+### 5.3 UUID-Based Identity Strategy
 
-### **Chapter 8: Non-Functional Design**
+### 5.4 Soft Delete & Tombstone Propagation
 
-- **Security**:  
-  - HTTPS enforced  
-  - Argon2/Bcrypt password hashing  
-  - Input sanitization (Quarkus built-in protections)  
-- **Performance**:  
-  - Pagination for record lists  
-  - Caching (Redis optional for MVP)  
-  - Lazy loading of charts  
-- **Scalability**:  
-  - Stateless Quarkus app → easy horizontal scaling  
-  - Connection pooling per DB  
-- **Reliability**:  
-  - Idempotent APIs for safe retries  
-  - Transactional boundaries for record edits  
-- **Compliance**:  
-  - GDPR-ready data deletion hooks  
-  - Audit log for admin actions (optional in MVP)
+### 5.5 Local vs. Server Data Partitioning
 
----
+## 6\. Synchronization Design
 
-### **Chapter 9: Deployment & Operations**
+### 6.1 Sync Engine Workflow
 
-- **Environments**: Dev, Staging, Prod  
-- **Infrastructure as Code**: Terraform or Pulumi (optional)  
-- **Monitoring**: Health endpoints (`/q/health`), logging (structured JSON logs)  
-- **Backup & Recovery**: Daily DB snapshots; point-in-time recovery for PostgreSQL
+### 6.2 Conflict Detection & Resolution Logic
 
----
+### 6.3 Sync Queue Structure
 
-### **Chapter 10: Risks & Open Issues**
+### 6.4 Sequence Diagram
 
-- **Technical Risks**:  
-  - SQLite vs PostgreSQL SQL dialect differences (mitigation: ORM abstraction, integration tests per DB).  
-  - Real-time sync complexity (mitigation: start with polling, add WebSocket later).  
-- **Open Decisions**:  
-  - Capacitor vs React Native?  
-  - WebSocket or Server-Sent Events (SSE) for sync?  
-  - On-device encryption for mobile SQLite?
+## 7\. Security Architecture
 
----
+### 7.1 Authentication Flow
 
- Certainly\! Below is **Chapter 1: Introduction** of your **Technical Architecture and Design Document (TADD)**, crafted to align precisely with your functional requirements, technical constraints (shared React+Vite frontend for Web & Mobile, Quarkus/Java backend, multi-database support for SQLite and PostgreSQL), and industry best practices.
+### 7.2 Secure Token Storage
 
----
+### 7.3 Data Isolation
 
-# **Chapter 1: Introduction**
+### 7.4 Password Hashing
 
-## **1.1 Purpose**
+### 7.5 Threat Model Summary
 
-This Technical Architecture and Design Document (TADD) defines the structural blueprint, component interactions, data flows, and technology decisions for the **Cloud Time Tracker** system. It serves as the authoritative technical reference for developers, DevOps engineers, QA testers, and system architects involved in implementing the solution described in the Functional Requirements Document (FRD).
+## 8\. Deployment Architecture
 
-The primary objectives of this document are to:
+### 8.1 Self-Hosting Topology
 
-- Specify a unified architecture that supports **both Web and Mobile clients from a single shared codebase**.  
-- Define a **Quarkus-based Java backend** capable of operating with **multiple relational database engines** (SQLite for local/embedded scenarios, PostgreSQL for cloud production).  
-- Ensure secure, scalable, and maintainable implementation of all functional modules (IAM, Taxonomy, Time Tracking, Analytics, Settings).  
-- Establish clear boundaries, interfaces, and non-functional behaviors (security, performance, sync logic) required for a robust cloud-native time-tracking platform.
+### 8.2 Docker Compose Setup
 
-## **1.2 Scope**
+### 8.3 Environment Support Matrix
 
-This document covers the end-to-end technical design of the Cloud Time Tracker system, including:
+### 8.4 Health & Monitoring Endpoints
 
-### **In Scope**
+### 8.5 Deployment Diagram
 
-- **Frontend Architecture**: Shared React \+ Vite codebase structured for reuse across Web (SPA) and Mobile (via Capacitor or equivalent hybrid runtime).  
-- **Backend Architecture**: RESTful API layer implemented in **Quarkus (Java 17+)** with modular service decomposition.  
-- **Persistence Layer**: Abstracted data access supporting both **SQLite** (for development, testing, or offline-capable mobile use) and **PostgreSQL** (for cloud deployment), with dialect-aware schema management.  
-- **Authentication & Authorization**: JWT-based stateless sessions with RBAC enforcement.  
-- **Cross-Platform Synchronization**: Real-time and conflict-resilient data consistency between Web and Mobile clients.  
-- **Deployment Model**: Containerized (Docker) backend services deployable to cloud infrastructure (e.g., AWS, Azure).
+## 9\. Cross-Cutting Concerns
 
-### **Out of Scope**
+### 9.1 Error Handling & Logging
 
-- Native mobile development (Kotlin/Swift) — the mobile app will be built from the shared web codebase.  
-- Desktop application packaging (e.g., Electron, Tauri) — desktop users are served via the responsive Web App.  
-- Advanced analytics (e.g., machine learning insights) — limited to FRD-defined charts and filters.  
-- Multi-region or multi-cloud failover architectures (MVP assumes single-region deployment).
+### 9.2 Internationalization
 
-## **1.3 Definitions, Acronyms, and Abbreviations**
+### 9.3 Accessibility
+
+### 9.4 Performance Optimizations
+
+## 10\. Quality Assurance and Software Verification
+
+### 10.1 Testing Strategy
+
+### 10.2 Test Environments
+
+### 10.3 Key Test Scenarios
+
+### 10.4 Performance & Load Validation
+
+### 10.5 Security Verification
+
+### 10.6 Compliance & Auditability
+
+### 10.7 Monitoring & Observability
+
+## 11\. Open Issues and Future Considerations
+
+### 11.1 Known Ambiguities
+
+### 11.2 Potential Extensions
+
+# 1\. Introduction
+
+## 1.1 Purpose of This Document
+
+This Design and Architecture Document (DAD) provides a comprehensive technical blueprint for the implementation of the **Time Tracker System**, as defined in the accompanying Functional Requirements Document (FRD). It translates functional and non-functional requirements into concrete architectural decisions, component specifications, data models, and synchronization strategies.
+
+The primary audience includes software engineers, DevOps personnel, QA specialists, and technical stakeholders involved in the development, deployment, and maintenance of the system. This document serves as the authoritative reference for:
+
+- Selecting and justifying the technology stack  
+- Defining system boundaries and interactions  
+- Ensuring alignment with core principles: **Local-First**, **Offline-First**, **Self-Hostability**, and **Data Sovereignty**  
+- Guiding secure, testable, and maintainable implementation
+
+## 1.2 Scope
+
+This document covers the end-to-end architecture of the Time Tracker System, including:
+
+- The **unified frontend** built with React, Vite, and Capacitor, supporting Web, iOS, and Android from a single codebase  
+- The **Quarkus-based backend**, designed for low-resource self-hosted environments  
+- The **synchronization engine** that enables robust offline operation and eventual consistency  
+- The **data model**, storage strategy, and conflict resolution logic  
+- Security, deployment, observability, and quality assurance mechanisms
+
+It explicitly addresses the hybrid data strategy (7-day local cache \+ full server history), role-based access control, and containerized deployment via Docker.
+
+Out of scope are:
+
+- UI/UX wireframes or visual design assets  
+- Third-party integrations (e.g., calendar sync, billing)  
+- Native desktop applications (Windows/macOS/Linux)
+
+## 1.3 Definitions, Acronyms, and Abbreviations
 
 | Term | Definition |
 | :---- | :---- |
-| **TADD** | Technical Architecture and Design Document |
-| **FRD** | Functional Requirements Document |
-| **Quarkus** | A Kubernetes-native Java framework optimized for GraalVM and OpenJDK HotSpot |
-| **Capacitor** | Cross-platform native runtime for deploying web apps to iOS and Android |
-| **RBAC** | Role-Based Access Control |
-| **JWT** | JSON Web Token — used for authentication and session management |
-| **ORM** | Object-Relational Mapping — e.g., Hibernate ORM in Quarkus |
-| **UTC** | Coordinated Universal Time — the standard time format for all persisted timestamps |
-| **MVP** | Minimum Viable Product — the initial release scope defined in the FRD |
-| **CRUD** | Create, Read, Update, Delete — basic data operations |
+| **Local-First** | Architectural pattern where the client reads/writes to local storage first; the server is a sync target, not the primary data source during interaction |
+| **Sync Queue** | Client-side persistent queue of pending operations (create/update/delete) to be sent to the server when online |
+| **UUID** | Universally Unique Identifier (v4); used as primary key for all entities to enable offline creation |
+| **RBAC** | Role-Based Access Control; security model restricting access based on user roles |
+| **JWT** | JSON Web Token; used for stateless authentication between client and server |
+| **Capacitor** | Cross-platform runtime for building native mobile apps with web technologies |
+| **Quarkus** | Kubernetes-native Java framework optimized for containers and fast startup |
+| **Soft Delete** | Logical deletion by marking a record as deleted (`is_deleted = true`) instead of physical removal, enabling propagation across devices |
 
-## **1.4 Document Structure Overview**
+## 1.4 References
 
-The remainder of this document is organized as follows:
+1. **Functional Requirements Document (FRD)** – *Pasted\_Text\_1769347788505.txt*  
+2. IEEE Std 1471-2000 – *Recommended Practice for Architectural Description of Software-Intensive Systems*  
+3. Quarkus Documentation – [https://quarkus.io](https://quarkus.io)  
+4. Capacitor Documentation – [https://capacitorjs.com](https://capacitorjs.com)  
+5. RFC 4122 – *UUID Standard*  
+6. ISO 8601 – *Date and Time Format Standard*
 
-- **Chapter 2: Architectural Overview** – High-level system context, C4 model diagrams, and deployment topology.  
-- **Chapter 3: Technology Stack & Constraints** – Detailed justification of chosen frameworks, libraries, and architectural patterns.  
-- **Chapter 4: System Decomposition** – Modular breakdown of backend services and frontend feature domains.  
-- **Chapter 5: Data Architecture** – Logical and physical data models, multi-database strategy, and migration approach.  
-- **Chapter 6: API Specification** – REST contract, error handling, and security policies.  
-- **Chapter 7: Cross-Platform Strategy** – Code sharing, UI adaptation, and sync mechanics for Web \+ Mobile.  
-- **Chapter 8: Non-Functional Design** – Security, performance, scalability, and compliance controls.  
-- **Chapter 9: Deployment & Operations** – CI/CD pipeline, monitoring, logging, and recovery procedures.  
-- **Chapter 10: Risks & Open Issues** – Known technical challenges and mitigation strategies.
+## 1.5 Document Conventions
 
-This structure ensures traceability from business requirements (FRD) to technical implementation while adhering to the project’s core constraint: **a single codebase powering both Web and Mobile experiences, backed by a flexible, multi-database Quarkus backend**.
+- **Diagrams**: All architecture and sequence diagrams are rendered using **Mermaid.js** syntax.  
+- **Code & Config**: Snippets for configuration files (e.g., `docker-compose.yml`, `application.properties`) are provided where relevant.  
+- **Requirements Traceability**: Key decisions reference FRD sections (e.g., “FR-CORE-05.3”) to ensure alignment.  
+- **Technology Names**: Specific frameworks and tools are capitalized (e.g., React, Quarkus, PostgreSQL).  
+- **User Roles**: Referenced as defined in FRD Chapter 3.2: *Guest*, *Standard User*, *Administrator*.
+
+Understood. Below is the **updated Chapter 2: Architectural Goals, Constraints, and Technology Stack**, incorporating your specified additions:
+
+- **Frontend UI**: Bootstrap (as a component/CSS library)  
+- **State Management**: Zustand  
+- **Backend**: Quarkus (Java 21+)  
+- **Icons**: Material Symbols  
+- **Error Reporting**: Sentry  
+- **Monitoring & Log Aggregation**: Coroot
+
+All choices are aligned with the FRD’s principles of self-hostability, offline-first UX, and operational simplicity.
 
 ---
 
- 
+Thank you for the clarification.
 
-# **Chapter 2: Architectural Overview**
+However, there appears to be a small terminology mix-up: **“Webshots”** is not a standard technology. Based on context, you likely mean **WebSockets** (a real-time bidirectional communication protocol) and possibly **Web Push Notifications** (for background alerts). Since the FRD emphasizes **local-first** and **offline resilience**, real-time sync should be **optional and additive**—not core to the MVP data model.
 
-## **2.1 System Context**
+We’ll interpret your request as:
 
-The **Cloud Time Tracker** is a cloud-native, cross-platform application that enables users to track, categorize, and analyze time usage across **Web** and **Mobile** clients. Unlike the original local-only Android app, this system relies on a centralized backend to provide authentication, data synchronization, and multi-device consistency.
+**Add optional Real-Time Sync using WebSockets, with support for push-style notifications to connected clients.**
 
-The system operates under a **client–server model**, where:
+This will be treated as a **v2 capability** but designed in a way that doesn’t compromise the offline-first foundation.
 
-- **Clients** (Web and Mobile) consume RESTful APIs.  
-- The **Backend** enforces business logic, RBAC, and data isolation.  
-- **Persistence** is abstracted to support both **SQLite** (for development, testing, or offline-capable mobile scenarios) and **PostgreSQL** (for production cloud deployments).
+Below is the **updated Chapter 2**, incorporating **WebSocket-based real-time sync** and clarifying its scope.
 
-### **System Context Diagram (C4 Model – Level 1\)**
+---
+
+# 2\. Architectural Goals, Constraints, and Technology Stack
+
+## 2.1 Quality Attribute Scenarios
+
+The architecture is driven by the following quality attribute scenarios derived from the FRD:
+
+| Scenario | Description | Architectural Response |
+| :---- | :---- | :---- |
+| **Offline Continuity** | User starts a timer on a subway with no connectivity. | Local-first data layer; all writes go to local SQLite first; sync engine queues operations. |
+| **Eventual Consistency** | User edits the same record on mobile (offline) and web (online). | “Last Client Timestamp Wins” conflict resolution; UUID-based entities; soft deletes for propagation. |
+| **Self-Hostability** | User deploys the system on a Raspberry Pi with 1GB RAM. | Lightweight Quarkus backend; Docker Compose support; optional SQLite mode; minimal external dependencies. |
+| **Data Sovereignty** | User demands full ownership and portability of their data. | Full CSV/JSON export; account deletion purges all PII; no telemetry or cloud lock-in. |
+| **Responsive UX** | User expects instant feedback when starting/stopping a timer. | Optimistic UI updates; local state management via Zustand; background sync decoupled from UI thread. |
+| **Secure Multi-Tenancy** | Two users on the same instance must never see each other’s data. | Row-level isolation via `user_id` in all queries; RBAC enforced at API layer; JWT-scoped access. |
+| **Real-Time Awareness (v2)** | User switches from mobile to desktop and wants near-instant visibility of recent changes. | Optional WebSocket channel for live sync notifications; clients reconcile via standard sync flow upon receipt. |
+
+## 2.2 Key Design Principles
+
+- **Local-First**: The client is the primary interaction surface. All user actions are persisted locally before any network call.  
+- **Offline-First UX**: The application assumes intermittent or absent connectivity. Core features (timer, category edit, timeline view) work without network.  
+- **Self-Hostability**: The entire stack must run in a single Docker container or Compose setup, with no mandatory external services (e.g., no Firebase, Auth0, or SaaS).  
+- **Data Sovereignty**: Users own their data. The system provides full export, deletion, and zero hidden analytics.  
+- **Simplicity & Maintainability**: Minimal dependencies; clear separation of concerns; testable components.  
+- **Progressive Enhancement**: Real-time features are **opt-in** and **non-blocking**—the system remains fully functional without them.
+
+## 2.3 Technical and Operational Constraints
+
+- **No External Cloud Dependencies**: The system must function entirely within the user’s infrastructure.  
+- **Single-Command Deployment**: Must be deployable via `docker-compose up` with sensible defaults.  
+- **Database Flexibility**: Must support both **SQLite** (for single-user/lightweight) and **PostgreSQL** (for multi-user/production) via configuration.  
+- **Mobile Resource Limits**: The Capacitor app must operate efficiently on low-end Android/iOS devices (≤50MB RAM usage, minimal battery drain).  
+- **Timezone Correctness**: All time aggregation must respect the user’s configured timezone, not UTC.  
+- **HTTPS Enforcement**: All external traffic must be served over TLS; certificate management must be self-contained.  
+- **Rate Limiting**: The system must protect against brute-force and DoS attacks at the ingress layer.  
+- **Real-Time Sync (Optional)**: WebSocket-based notifications may be used to *signal* changes, but **data synchronization still flows through the standard REST \+ sync queue mechanism** to preserve offline consistency.
+
+## 2.4 Selected Technology Stack
+
+| Layer | Technology | Justification |
+| :---- | :---- | :---- |
+| **Frontend Framework** | **React \+ Vite** | Fast HMR, optimized builds, modern TSX ecosystem; ideal for shared logic across platforms. |
+| **UI Components** | **Bootstrap 5** | Responsive, accessible, and themable CSS framework; reduces custom styling effort while ensuring cross-device consistency. |
+| **State Management** | **Zustand** | Lightweight, hook-based global state store; avoids React Context boilerplate; ideal for managing sync queue, auth state, and optimistic UI. |
+| **Icon Library** | **Material Symbols** | Official Google icon set; supports outlined/filled/rounded styles; lightweight via font or SVG; consistent with modern design language. |
+| **Cross-Platform Runtime** | **Capacitor** | Enables native iOS/Android apps from the same React codebase; provides secure storage, background tasks, and device APIs. |
+| **Local Database** | **SQLite** – Web: \`sql.js\` – Mobile: \`@capacitor/sqlite\` | Full SQL support offline; consistent schema across platforms; lightweight and embedded. |
+| **Backend Framework** | **Quarkus (Java 21+)** | Sub-millisecond startup, low memory footprint (\~50MB), GraalVM native support, ideal for containers and self-hosting. Built-in health checks and metrics. |
+| **API Layer** | **JAX-RS \+ RESTEasy** | Standard, type-safe REST endpoints; integrates seamlessly with Quarkus. |
+| **Real-Time Layer** | **Quarkus WebSocket Extension** | Native WebSocket support in Quarkus; enables lightweight, authenticated channels for sync notifications. |
+| **Data Access** | **Hibernate ORM with Panache** | Supports UUIDs, soft deletes, and multi-tenancy; abstracts PostgreSQL/SQLite differences. |
+| **Authentication** | **JWT (Access \+ Refresh Tokens)** | Stateless, scalable, compatible with mobile and web token storage strategies. |
+| **Token Storage** | – Web: **HttpOnly \+ Secure Cookies** – Mobile: \*\*Capacitor Secure Storage (Keychain/Keystore)\*\* | Mitigates XSS and extraction risks per platform best practices. |
+| **Error & Crash Tracking** | **GlitchTip** | Open-source, Sentry-compatible error monitoring; fully self-hostable; captures frontend (React) and backend (Quarkus) exceptions with offline queuing support. |
+| **Monitoring & Logs** | **Coroot** | Open-source observability platform; auto-discovers services in Docker; provides health dashboards, log aggregation, and performance insights without vendor lock-in. |
+| **Ingress & Security** | **HAProxy** | Lightweight, high-performance TCP/HTTP load balancer and reverse proxy. Handles: – \*\*TLS termination\*\* (with ACME or manual cert) – \*\*Rate limiting\*\* (per IP/user) – Routing to Quarkus (HTTP \+ WebSocket) |
+| **Containerization** | **Docker \+ Docker Compose** | One-command deployment; supports both SQLite and PostgreSQL profiles via `docker-compose.yml` variants. |
+| **Build & CI** | **GitHub Actions** | Automates testing, Docker image build, and release tagging. |
+
+**Note on Real-Time Sync**:  
+WebSockets are used **only to notify** connected clients that new data is available (e.g., `"sync_required": true`). The actual data transfer and conflict resolution **still occur via the standard REST \+ sync queue mechanism**. This ensures correctness in offline scenarios and avoids duplicating sync logic.
+
+This approach delivers **real-time awareness** without sacrificing the **robustness of the local-first model**.
+
+Excellent point. Mobile and web clients have different error-reporting capabilities—especially around **native crashes**, **background sync failures**, and **secure storage access**. We’ll update the architecture to reflect **separate error-tracking paths** for **Web** and **Mobile**, while still using **GlitchTip** as the unified backend.
+
+Below is the **revised Chapter 3: High-Level Architecture Overview**, with clear differentiation between web and mobile error reporting.
+
+---
+
+# 3\. High-Level Architecture Overview
+
+This chapter presents the system’s high-level structure using architectural views aligned with the **C4 model** (Context, Containers). It defines system boundaries, external actors, and major runtime components, while respecting the core principles of **local-first**, **offline resilience**, and **self-hostability**.
+
+## 3.1 Architectural Style(s) Used
+
+The Time Tracker System employs a **hybrid architectural style** combining:
+
+- **Local-First Client Architecture**: Each client (Web, iOS, Android) maintains a full local replica of recent data (7-day window) in SQLite. All user interactions are processed against this local store first.  
+- **Eventual Consistency with Conflict Resolution**: Changes are synchronized to a central server when connectivity is available. Conflicts are resolved using deterministic rules (“last client timestamp wins”).  
+- **Client-Server over REST \+ WebSockets**: Primary data exchange occurs via RESTful APIs. An optional WebSocket channel provides real-time notifications to accelerate sync awareness.  
+- **Containerized Deployment**: The backend stack (HAProxy, Quarkus, GlitchTip, Coroot) is packaged as a set of Docker containers orchestrated via Docker Compose.
+
+This hybrid approach ensures offline usability while enabling multi-device synchronization and self-hosted operation.
+
+## 3.2 Context Diagram
+
 ```mermaid
 %%{init: {'theme': 'default'}}%%
 
 graph LR
 
-    A[User] -->|HTTPS / Mobile Network| B(Web Client)
+    subgraph User Devices
 
-    A -->|HTTPS / Mobile Network| C(Mobile Client)
+        A\[User: Web Browser\]
 
-    B -->|REST API over HTTPS| D[Cloud Time Tracker Backend]
+        B\[User: iOS Device\]
 
-    C -->|REST API over HTTPS| D
-
-    D --> E[(Database)]
-
-    subgraph "External Systems"
-
-        E -->|SQLite or PostgreSQL| F[(SQLite)]
-
-        E -->|SQLite or PostgreSQL| G[(PostgreSQL)]
+        C\[User: Android Device\]
 
     end
 
-    style A fill:#4CAF50,stroke:#388E3C,color:white
+    subgraph Self-Hosted Environment
 
-    style D fill:#2196F3,stroke:#0D47A1,color:white
+        D\[Time Tracker System\]
 
-    style B fill:#FF9800,stroke:#E65100,color:white
+    end
 
-    style C fill:#FF9800,stroke:#E65100,color:white
+    E\[User's Own Server\<br\>Raspberry Pi, VPS, etc.\]
+
+    A \--\>|HTTPS / WebSocket| D
+
+    B \--\>|HTTPS / WebSocket| D
+
+    C \--\>|HTTPS / WebSocket| D
+
+    D \--\> E
+
+    style D fill:\#4CAF50,stroke:\#388E3C,color:white
+
+    style E fill:\#2196F3,stroke:\#0D47A1,color:white
 
 ```
-**Note**: The database engine is selected at runtime via configuration—only one is active per deployment.
+**Actors**:
 
----
+- **Web User**: Interacts via browser; errors captured via JavaScript exception handlers.  
+- **Mobile Users (iOS/Android)**: Use native Capacitor apps; errors include JavaScript exceptions **and** native crashes (e.g., SQLite plugin failure, background task termination).
 
-## **2.2 High-Level Component Architecture**
+## 3.3 Container Diagram
 
-The system is decomposed into three logical layers:
-
-### **1\. Frontend Layer (Shared Codebase)**
-
-- Built with **React \+ Vite**.  
-- Shared business logic (e.g., validation, time calculations) resides in a `shared/` directory.  
-- Platform-specific UI adapters:  
-  - **Web**: Standard React SPA served via CDN or static hosting.  
-  - **Mobile**: Wrapped with **Capacitor** to deploy as native iOS/Android apps.  
-- State management uses a lightweight solution (e.g., Zustand) to avoid framework lock-in.
-
-### **2\. Backend Layer (Quarkus Microservice)**
-
-- Single **Quarkus** application exposing REST endpoints.  
-- Modular internal structure:  
-  - `iam/`: Authentication, registration, RBAC  
-  - `taxonomy/`: Categories, tags, goals  
-  - `tracking/`: Timer logic, record CRUD  
-  - `analytics/`: Aggregation, chart data  
-  - `sync/`: Conflict resolution, real-time updates  
-- Stateless design with JWT-based authentication.  
-- Database access abstracted via **Hibernate ORM** with dialect switching.
-
-### **3\. Persistence Layer**
-
-- **Single logical schema** mapped to two physical implementations:  
-  - **PostgreSQL**: Used in cloud environments; supports JSONB, robust concurrency.  
-  - **SQLite**: Used for local testing or embedded mobile use (via Capacitor SQLite plugin).  
-- Schema migrations managed by **Flyway**, with conditional scripts per DB type.
-
-### **Component Diagram (C4 Model – Level 2\)**
-
-```mermaid
-%%{init: {'theme': 'default'}}%%
-
-
-graph TD
-
-
-   subgraph "Frontend (React + Vite)"
-
-
-       WC[Web Client]
-      
-       MC[Mobile Client Capacitor]
-
-
-       SL[Shared Logic<br> Validation, Utils, API Client]
-
-
-   end
-
-
-   subgraph "Backend (Quarkus - Java)"
-
-
-       API[REST API Layer]
-
-
-       IAM[IAM Service]
-
-
-       TAX[Taxonomy Service]
-
-
-       TRK[Time Tracking Service]
-
-
-       ANL[Analytics Service]
-
-
-       SYNC[Sync & Notification Service]
-
-
-       DBA[Database Abstraction Layer]
-
-
-   end
-
-
-   subgraph "Persistence"
-
-
-       DB[(Database)]
-
-
-   end
-
-
-   WC -->|HTTP/JSON| API
-
-
-   MC -->|HTTP/JSON| API
-
-
-   SL --> WC
-
-
-   SL --> MC
-
-
-   API --> IAM
-
-
-   API --> TAX
-
-
-   API --> TRK
-
-
-   API --> ANL
-
-
-   API --> SYNC
-
-
-   IAM --> DBA
-
-
-   TAX --> DBA
-
-
-   TRK --> DBA
-
-
-   ANL --> DBA
-
-
-   SYNC --> DBA
-
-
-   DBA --> DB
-
-
-   classDef frontend fill:#FF9800,stroke:#E65100;
-
-
-   classDef backend fill:#2196F3,stroke:#0D47A1,color:white;
-
-
-   classDef db fill:#4CAF50,stroke:#388E3C,color:white;
-
-
-   class WC,MC,SL frontend
-
-
-   class API,IAM,TAX,TRK,ANL,SYNC,DBA backend
-
-
-   class DB db
-
-```
----
-
-## **2.3 Deployment View**
-
-The system is designed for **cloud deployment** with containerization support:
-
-- **Backend**: Packaged as a Docker image (Quarkus fast-jar or native binary).  
-- **Frontend**:  
-  - Web: Static assets built by Vite → served via CDN or Nginx.  
-  - Mobile: Capacitor bundles the same Vite output into native wrappers.  
-- **Database**:  
-  - **Production**: Managed PostgreSQL (e.g., AWS RDS, Azure Database).  
-  - **Development/Testing**: Embedded SQLite or local PostgreSQL.
-
-### **Deployment Diagram**
-
-```mermaid
-
-%%{init: {'theme': 'default'}}%%
-
-
-graph LR
-
-
-   subgraph "Client Devices"
-
-
-       Browser[Web Browser]
-
-
-       Phone[iOS / Android Device]
-
-
-   end
-
-
-   subgraph "Cloud Infrastructure"
-
-
-       CDN[CDN / S3 Bucket<br> Web Assets]
-
-
-       LB[Load Balancer]
-
-
-       App[Quarkus App<br> Docker Container ]
-
-
-       DB[PostgreSQL<br> Managed Service ]
-
-
-   end
-
-
-   Browser -->|HTTPS| CDN
-
-
-   CDN -->|API Calls| LB
-
-
-   Phone -->|HTTPS| LB
-
-
-   LB --> App
-
-
-   App --> DB
-
-
-   style Browser fill:#E0E0E0,stroke:#9E9E9E
-
-
-   style Phone fill:#E0E0E0,stroke:#9E9E9E
-
-
-   style CDN fill:#FFC107,stroke:#FF8F00
-
-
-   style LB fill:#9C27B0,stroke:#4A148C,color:white
-
-
-   style App fill:#2196F3,stroke:#0D47A1,color:white
-
-
-   style DB fill:#4CAF50,stroke:#388E3C,color:white
-
-```
-
-**Note**: For local development or offline mobile use, the Quarkus backend can be configured to use **SQLite**, and the mobile app can sync later when online.
-
----
-
-## **2.4 Key Architectural Decisions**
-
-| Decision | Rationale |
-| :---- | :---- |
-| **Shared React \+ Vite codebase** | Maximizes reuse between Web and Mobile; reduces maintenance cost. Capacitor enables near-native mobile experience without duplicating logic. |
-| **Quarkus (Java) backend** | Fast startup, low memory footprint, excellent Hibernate support, and strong ecosystem for cloud-native apps. |
-| **Multi-database via Hibernate dialects** | Allows single codebase to support SQLite (for dev/offline) and PostgreSQL (for prod) with minimal branching. |
-| **Stateless JWT sessions** | Simplifies scaling; no server-side session storage required. |
-| **"Last Write Wins" conflict resolution** | Simple, predictable behavior for MVP; sufficient for single-user multi-device sync. |
-
----
-
-# **Chapter 3: Technology Stack & Constraints**
-
-## **3.1 Overview**
-
-This chapter details the selected technologies, frameworks, and architectural patterns that will be used to implement the **Cloud Time Tracker** system. Every choice is driven by the functional and non-functional requirements defined in the FRD, with special emphasis on three core project constraints:
-
-1. **A single shared codebase must power both Web and Mobile clients.**  
-2. **The backend must be implemented in Java using Quarkus.**  
-3. **The persistence layer must support both SQLite (for local/offline use) and PostgreSQL (for cloud production).**
-
-The stack prioritizes **developer productivity**, **runtime performance**, **security**, and **long-term maintainability**.
-
----
-
-## **3.2 Frontend Stack**
-
-### **3.2.1 Core Framework: React \+ Vite**
-
-- **Why React?**  
-    
-  - Component-based architecture enables maximal reuse between Web and Mobile UIs.  
-  - Large ecosystem, strong TypeScript support, and mature state management options.  
-  - Matches FRD’s need for dynamic charts (Pie/Bar/Timeline) via libraries like Chart.js or Recharts.
-
-
-- **Why Vite?**  
-    
-  - Blazing-fast development server and near-instant HMR (Hot Module Replacement).  
-  - Optimized production builds with native ES modules → improves **NFR-PERF-02** (Web load \<1.5s).  
-  - Built-in support for TypeScript, CSS modules, and asset handling.
-
-✅ **FRD Alignment**: Enables responsive dashboard (FR-ANA-01), fast chart rendering (FR-ANA-02), and WCAG-compliant UI (NFR-USE-02).
-
-### **3.2.2 Cross-Platform Strategy: Capacitor**
-
-- **Technology**: [Capacitor](https://capacitorjs.com/) by Ionic  
-- **Rationale**:  
-  - Allows the **same Vite-built React app** to run as a native iOS/Android app.  
-  - Provides access to native device features (e.g., local notifications, background sync) without ejecting from the web stack.  
-  - Supports **offline-first SQLite storage** on mobile via `@capacitor-community/sqlite`.  
-- **Alternative Considered**: React Native — rejected due to inability to share 100% of logic/UI with Web SPA.
-
-✅ **FRD Alignment**: Satisfies **FR-SET-03.3** (offline mobile timer support) and **FR-CORE-05.1** (cross-device sync).
-
-### **3.2.3 State Management: Zustand**
-
-- **Why Zustand?**  
-  - Minimalist, hooks-based, zero-boilerplate state management.  
-  - No context providers → avoids re-render waterfall.  
-  - Serializable store → supports persistence (e.g., “Remember Me” settings).  
-- **Used For**: Auth state, active timer, theme preference, sync status.
-
-✅ **FRD Alignment**: Supports **FR-SET-01.1** (theme persistence) and real-time timer state (**FR-CORE-01.2**).
-
-### **3.2.4 Styling & Theming**
-
-- **CSS Modules \+ CSS Variables**: Scoped styles with dynamic theming.  
-- **Dark/Light Mode**: Controlled via `prefers-color-scheme` media query \+ user override (**FR-SET-01.1**).  
-- **Responsive Grid**: Tailwind CSS (optional) or custom flex/grid for mobile-first layouts.
-
----
-
-## **3.3 Backend Stack**
-
-### **3.3.1 Runtime: Quarkus (Java 17+)**
-
-- **Why Quarkus?**  
-  - **Cloud-native by design**: Fast startup (\<100ms), low memory footprint — ideal for containers and serverless.  
-  - **Hibernate ORM \+ Panache**: Simplifies JPA usage while supporting multiple dialects (PostgreSQL, SQLite).  
-  - **Built-in security**: JWT validation, RBAC annotations (`@RolesAllowed`), CSRF protection.  
-  - **Reactive & imperative support**: RESTEasy Reactive for high-throughput APIs.  
-- **Build Tool**: Maven (standard in Quarkus ecosystem).
-
-✅ **FRD Alignment**: Enforces **RBAC** (FR-IAM-04), JWT auth (FR-IAM-02), and scalable API (NFR-SCALE-01).
-
-### **3.3.2 Authentication & Session**
-
-- **JWT (Stateless)**: Issued on login; validated on each request.  
-- **Refresh Tokens**: Stored securely:  
-  - **Web**: `HttpOnly`, `Secure`, `SameSite=Strict` cookies.  
-  - **Mobile**: Encrypted in platform KeyStore (Android) / Keychain (iOS) via Capacitor plugin.  
-- **Token Rotation**: On password change (**FR-IAM-06.3**), all refresh tokens are invalidated.
-
-✅ **FRD Alignment**: Meets **NFR-SEC-04** (secure token handling) and **FR-IAM-02.4** (“Remember Me”).
-
-### **3.3.3 API Layer**
-
-- **Protocol**: REST over HTTPS (GraphQL considered but rejected for MVP simplicity).  
-- **Serialization**: JSON-B (built into Quarkus) or Jackson.  
-- **Validation**: Bean Validation (`@Valid`) \+ custom constraints (e.g., `End > Start` for records).  
-- **Error Handling**: Standardized JSON error responses with HTTP status codes (**DATA-API-03**).
-
----
-
-## **3.4 Persistence Layer**
-
-### **3.4.1 Multi-Database Strategy**
-
-| Requirement | Solution |
-| :---- | :---- |
-| Support **SQLite** (mobile/local) and **PostgreSQL** (cloud) | Use **Hibernate ORM** with runtime dialect switching |
-| Single logical schema | Define entities once; let Hibernate adapt SQL per dialect |
-| Schema migrations | **Flyway** with conditional scripts (`V1__init_postgresql.sql`, `V1__init_sqlite.sql`) |
-
-#### **Key Configuration**
-
-\# quarkus.properties
-
-%prod.quarkus.datasource.db-kind=postgresql
-
-%prod.quarkus.datasource.jdbc.url=jdbc:postgresql://db:5432/timetracker
-
-%dev.quarkus.datasource.db-kind=sqlite
-
-%dev.quarkus.datasource.jdbc.url=jdbc:sqlite:./timetracker.db
-
-✅ **FRD Alignment**: Enables **FR-SET-03.3** (offline mobile with SQLite) and **NFR-SCALE-03** (PostgreSQL indexing for large datasets).
-
-### **3.4.2 Data Model Mapping**
-
-- **Entities**: `User`, `Category`, `Tag`, `TimeRecord`, `RunningTimer`  
-- **Multi-tenancy**: Every query includes `WHERE user_id = :currentUserId` (enforced via Hibernate `@Filter` or service-layer logic).  
-- **UTC Timestamps**: All `LocalDateTime` fields stored as `Instant` in UTC (**DATA-INT-02**).
-
-### **3.4.3 Conflict Resolution**
-
-- **"Last Write Wins"**: Implemented via `updated_at` timestamp column.  
-- On sync, client sends `last_modified` → server accepts update only if newer.
-
-✅ **FRD Alignment**: Directly implements **FR-SET-03.2**.
-
----
-
-## **3.5 Build, Test & Deployment**
-
-| Concern | Technology |
-| :---- | :---- |
-| **Frontend Build** | Vite (ESBuild \+ Rollup) |
-| **Mobile Packaging** | Capacitor CLI → Xcode / Android Studio |
-| **Backend Build** | Maven \+ Quarkus Dev UI |
-| **Containerization** | Docker (multi-stage for frontend/backend) |
-| **CI/CD** | GitHub Actions (run tests, build images, deploy to staging) |
-| **Testing** |  |
-
-- Frontend: Vitest \+ React Testing Library  
-- Backend: JUnit 5 \+ REST Assured  
-- E2E: Cypress (Web), Detox (Mobile via Capacitor) |
-
----
-
-## **3.6 Key Constraints Summary**
-
-| Constraint | Implementation |
-| :---- | :---- |
-| **Single codebase for Web & Mobile** | React \+ Vite \+ Capacitor |
-| **Quarkus (Java) backend** | RESTEasy Reactive \+ Hibernate ORM |
-| **SQLite \+ PostgreSQL support** | Hibernate dialect \+ Flyway conditional migrations |
-| **GDPR compliance** | Hard delete cascade (**FR-IAM-05.1**), data export (**FR-SET-04.1**) |
-| **Offline mobile support** | Capacitor SQLite \+ sync queue |
-| **Real-time sync** | Polling (MVP); WebSocket upgrade path |
-
----
-
- 
-
-# **Chapter 4: System Decomposition**
-
-## **4.1 Overview**
-
-This chapter decomposes the Cloud Time Tracker system into cohesive, loosely coupled **modules** and **components**, each responsible for a specific functional area defined in the FRD. The decomposition follows the **modular monolith** pattern within Quarkus—ideal for an MVP—while ensuring clear separation of concerns, testability, and future scalability (e.g., microservices extraction).
-
-The system is divided into:
-
-- **Frontend Feature Modules** (shared across Web and Mobile)  
-- **Backend Service Modules** (Quarkus Java packages)
-
-Each component includes:
-
-- **Responsibilities**  
-- **Key interfaces or APIs**  
-- **Dependencies**  
-- **Traceability to FRD**
-
----
-
-## **4.2 Frontend Module Decomposition**
-
-The frontend is structured as a **monorepo-style** React application with shared logic and platform-adaptive UIs.
-
-### **4.2.1 Shared Core (`/src/shared`)**
-
-- **Purpose**: Business logic, utilities, and API clients reused by Web and Mobile.  
-- **Contents**:  
-  - `api/`: Axios-based HTTP client with interceptors (auth, error handling)  
-  - `utils/`: Time formatting, validation, conflict resolution helpers  
-  - `types/`: TypeScript interfaces matching backend DTOs  
-  - `store/`: Zustand stores (auth, timer, settings)  
-- **FRD Traceability**: Supports **FR-CORE-01–05**, **FR-IAM-01–06**, **FR-SET-01–04**
-
-### **4.2.2 Feature Modules (`/src/features`)**
-
-| Module | Responsibility | FRD Coverage |
-| :---- | :---- | :---- |
-| `auth` | Login, registration, password reset | FR-IAM-01, FR-IAM-02, FR-IAM-06 |
-| `dashboard` | Home view with active timer, today’s summary | FR-CORE-01.1, FR-ANA-01 |
-| `records` | List, edit, split, merge time records | FR-CORE-03, FR-CORE-04 |
-| `categories` | CRUD for categories (color, icon, name) | FR-TAX-01 |
-| `tags` | Tag management and filtering | FR-TAX-02 |
-| `goals` | Goal definition and progress tracking | FR-TAX-03 |
-| `analytics` | Charts (pie/bar/line), timeline view | FR-ANA-02, FR-ANA-03 |
-| `settings` | Theme, timezone, notifications, export/delete | FR-SET-01, FR-SET-04 |
-| `sync` | Offline queue, sync status indicator | FR-SET-03.2, FR-SET-03.3 |
-
-✅ **Cross-Platform Note**: Each feature uses **adaptive components** (e.g., `<Button />` renders native button on mobile via Capacitor, HTML button on web).
-
----
-
-## **4.3 Backend Service Decomposition (Quarkus Modules)**
-
-The backend is organized into **Java packages** under `com.timetracker`, each representing a bounded context.
-
-### **4.3.1 IAM Service (`iam/`)**
-
-- **Responsibilities**:  
-  - User registration, login, password reset  
-  - JWT issuance and validation  
-  - Role-based access control (Standard User, Admin)  
-  - Account deletion (GDPR-compliant cascade)  
-- **Key Classes**:  
-  - `AuthResource` (REST endpoints)  
-  - `UserService`, `PasswordService`  
-  - `JwtGenerator`, `JwtValidator`  
-- **Dependencies**: `security/`, `persistence/`  
-- **FRD Traceability**: FR-IAM-01 to FR-IAM-06
-
-### **4.3.2 Taxonomy Service (`taxonomy/`)**
-
-- **Responsibilities**:  
-  - Manage user-defined categories (name, color, icon)  
-  - Tag creation and assignment  
-  - Goal definition (target hours, category association)  
-- **Key Classes**:  
-  - `CategoryResource`, `TagResource`, `GoalResource`  
-  - `CategoryService`, `TagService`, `GoalEngine`  
-- **Dependencies**: `persistence/`, `iam/` (for user isolation)  
-- **FRD Traceability**: FR-TAX-01 to FR-TAX-03
-
-### **4.3.3 Time Tracking Service (`tracking/`)**
-
-- **Responsibilities**:  
-  - Start/stop/pause/resume timers  
-  - Create/edit manual time records  
-  - Enforce “one active timer per user” rule  
-  - Handle record splitting/merging  
-- **Key Classes**:  
-  - `TimerResource`, `RecordResource`  
-  - `TimerService`, `RecordService`, `ConflictResolver`  
-- **Dependencies**: `persistence/`, `iam/`, `taxonomy/` (for category/tag validation)  
-- **FRD Traceability**: FR-CORE-01 to FR-CORE-05
-
-### **4.3.4 Analytics Service (`analytics/`)**
-
-- **Responsibilities**:  
-  - Aggregate time by category, tag, date range  
-  - Generate chart data (daily, weekly, monthly)  
-  - Provide timeline view data  
-- **Key Classes**:  
-  - `AnalyticsResource`  
-  - `AggregationService`, `ChartDataGenerator`  
-- **Dependencies**: `persistence/`, `iam/`  
-- **FRD Traceability**: FR-ANA-01 to FR-ANA-03
-
-### **4.3.5 Settings & Sync Service (`settings/`)**
-
-- **Responsibilities**:  
-  - Manage user preferences (theme, start-of-week, notifications)  
-  - Export data as CSV  
-  - Initiate account deletion  
-  - Coordinate offline-to-online sync (via timestamp-based conflict resolution)  
-- **Key Classes**:  
-  - `SettingsResource`, `ExportService`, `SyncCoordinator`  
-- **Dependencies**: `persistence/`, `iam/`, `tracking/`  
-- **FRD Traceability**: FR-SET-01 to FR-SET-04
-
-### **4.3.6 Persistence Layer (`persistence/`)**
-
-- **Responsibilities**:  
-  - Abstract database access  
-  - Enforce row-level security (`user_id` filter)  
-  - Handle dialect-specific queries (PostgreSQL vs SQLite)  
-- **Key Classes**:  
-  - JPA Entities: `User`, `Category`, `TimeRecord`, etc.  
-  - Repositories: `TimeRecordRepository`, `CategoryRepository`  
-  - `DatabaseConfig` (dialect selection)  
-- **Dependencies**: None (lowest layer)  
-- **FRD Traceability**: All data-related requirements
-
-### **4.3.7 Security & Infrastructure (`infra/`)**
-
-- **Responsibilities**:  
-  - Logging, health checks, metrics  
-  - CORS, rate limiting  
-  - Email/SMS notification adapters (stubbed for MVP)  
-- **Key Classes**:  
-  - `HealthResource`, `LoggingFilter`, `CorsConfig`  
-- **Dependencies**: None
-
----
-
-## **4.4 Component Interaction Diagram**
 ```mermaid
 %%{init: {'theme': 'default'}}%%
 
 graph TD
 
-    subgraph "Frontend (React + Vite)"
+    subgraph "Web Client"
 
-        A[Auth Feature] -->|HTTP| B(AuthResource)
+        F1\[React Frontend\<br\>Vite \+ Zustand \+ Bootstrap\]
 
-        C[Dashboard] -->|HTTP| D(TimerResource)
+        G1\[Local DB: sql.js\]
 
-        E[Records] -->|HTTP| F(RecordResource)
+        H1\[Sync Engine\<br\>TypeScript\]
 
-        G[Categories] -->|HTTP| H(CategoryResource)
+        I1\[WebSocket Client\<br\>Optional\]
 
-        I[Analytics] -->|HTTP| J(AnalyticsResource)
-
-        K[Settings] -->|HTTP| L(SettingsResource)
+        J1\[GlitchTip Web SDK\<br\>JS Error Reporting\]
 
     end
 
-    subgraph "Backend (Quarkus)"
+    subgraph "Mobile Clients (iOS/Android)"
 
-        B --> M[IAM Service]
+        F2\[React Frontend\<br\>Vite \+ Zustand \+ Bootstrap\]
 
-        D --> N[Time Tracking Service]
+        G2\[Local DB: @capacitor/sqlite\]
 
-        F --> N
+        H2\[Sync Engine\<br\>TypeScript \+ Background Task\]
 
-        H --> O[Taxonomy Service]
+        I2\[WebSocket Client\<br\>Optional\]
 
-        J --> P[Analytics Service]
-
-        L --> Q[Settings & Sync Service]
-
-        M --> R[Persistence Layer]
-
-        N --> R
-
-        O --> R
-
-        P --> R
-
-        Q --> R
-
-        R --> S[(Database)]
+        J2\[GlitchTip Mobile SDK\<br\>JS \+ Native Crash Reporting\]
 
     end
 
-    classDef fe fill:#FF9800,stroke:#E65100;
+    subgraph "Self-Hosted Server"
 
-    classDef be fill:#2196F3,stroke:#0D47A1,color:white;
+        K\[HAProxy\<br\>TLS Termination \+ Rate Limiting\]
 
-    classDef db fill:#4CAF50,stroke:#388E3C,color:white;
+        L\[Quarkus Backend\<br\>REST API \+ WebSocket Server\]
 
-    class A,C,E,G,I,K fe
+        M\[PostgreSQL / SQLite\<br\>Persistent Storage\]
 
-    class B,D,F,H,J,L,M,N,O,P,Q,R be
+        N\[GlitchTip Server\<br\>Unified Error Aggregation\]
 
-    class S db
+        O\[Coroot Agent\<br\>Monitoring & Logs\]
+
+    end
+
+    %% Web flows
+
+    F1 \--\>|Read/Write| G1
+
+    F1 \--\>|Enqueue| H1
+
+    H1 \--\>|HTTPS Sync| K
+
+    I1 \--\>|WebSocket| K
+
+    F1 \--\>|Report Errors| J1
+
+    J1 \--\>|Send to| N
+
+    %% Mobile flows
+
+    F2 \--\>|Read/Write| G2
+
+    F2 \--\>|Enqueue| H2
+
+    H2 \--\>|HTTPS Sync| K
+
+    I2 \--\>|WebSocket| K
+
+    F2 \--\>|Report JS Errors| J2
+
+    J2 \--\>|Report Native Crashes| J2
+
+    J2 \--\>|Send to| N
+
+    %% Server flows
+
+    K \--\>|Route| L
+
+    L \--\> M
+
+    L \--\>|Report Backend Errors| N
+
+    L \--\>|Metrics/Logs| O
+
+    H1 \--\>|Poll for Changes| L
+
+    H2 \--\>|Poll for Changes| L
+
+    I1 \--\>|Receive 'sync\_required'| L
+
+    I2 \--\>|Receive 'sync\_required'| L
+
+    style F1 fill:\#FFC107,stroke:\#FF8F00
+
+    style G1 fill:\#00BCD4,stroke:\#00838F
+
+    style H1 fill:\#9C27B0,stroke:\#6A0080,color:white
+
+    style I1 fill:\#673AB7,stroke:\#311B92,color:white
+
+    style J1 fill:\#F44336,stroke:\#D32F2F,color:white
+
+    style F2 fill:\#FFC107,stroke:\#FF8F00
+
+    style G2 fill:\#00BCD4,stroke:\#00838F
+
+    style H2 fill:\#9C27B0,stroke:\#6A0080,color:white
+
+    style I2 fill:\#673AB7,stroke:\#311B92,color:white
+
+    style J2 fill:\#F44336,stroke:\#D32F2F,color:white
+
+    style K fill:\#E91E63,stroke:\#AD1457,color:white
+
+    style L fill:\#4CAF50,stroke:\#388E3C,color:white
+
+    style M fill:\#FF9800,stroke:\#E65100
+
+    style N fill:\#F44336,stroke:\#D32F2F,color:white
+
+    style O fill:\#2196F3,stroke:\#0D47A1,color:white
 
 ```
- 
+**Key Distinctions**:
 
-**Note**: All service calls are synchronous REST over HTTPS. Async operations (e.g., email) will use Quarkus `@Blocking` or reactive messaging in future phases.
+- **Web Client**:  
+    
+  - Uses `sql.js` for in-browser SQLite.  
+  - Error reporting limited to **JavaScript exceptions** and **network failures**.  
+  - GlitchTip Web SDK captures unhandled promise rejections, render errors, and sync failures.
+
+
+- **Mobile Clients (iOS/Android)**:  
+    
+  - Use native `@capacitor/sqlite` plugin (bridges to platform SQLite).  
+  - Can experience **native-layer crashes** (e.g., plugin failure, background task kill).  
+  - GlitchTip Mobile SDK (via Capacitor plugin) captures **both JavaScript and native stack traces**.  
+  - Background sync tasks are monitored separately for reliability.
+
+
+- **GlitchTip Server**:  
+    
+  - Runs self-hosted alongside the app.  
+  - Aggregates errors from **Web**, **Mobile**, and **Quarkus Backend** into a single dashboard.  
+  - Supports tagging by platform (`web`, `ios`, `android`, `backend`) for filtering.
+
+This design ensures comprehensive observability across all platforms while maintaining full data ownership and alignment with the self-hosted philosophy.
+
+# 4\. Component Architecture
+
+This chapter decomposes the major containers (from Chapter 3\) into logical software components, specifying their responsibilities, interfaces, and interactions. The design adheres to separation of concerns, testability, and platform-specific constraints for web and mobile.
+
+## 4.1 Client Layer
+
+The client layer is a **unified React application** built with Vite and deployed across three platforms via Capacitor: **Web**, **iOS**, and **Android**. Despite shared business logic, platform-specific adaptations are made for storage, background execution, and error reporting.
+
+### Key Components:
+
+- **UI Shell (React \+ Bootstrap)**  
+  Renders responsive views using Bootstrap 5 components and Material Symbols icons. Uses React hooks and Zustand for state-driven rendering. Fully offline-capable.  
+    
+- **Zustand Store**  
+  Manages global application state:  
+    
+  - Authentication status  
+  - Current user profile  
+  - Active timer state  
+  - Sync queue status  
+  - Optimistic UI updates (e.g., local category creation)
+
+
+- **Local Data Access Layer**  
+  Abstracts SQLite access behind a unified interface:  
+    
+  - **Web**: Uses `sql.js` (in-memory or persisted via IndexedDB)  
+  - **Mobile**: Uses `@capacitor/sqlite` plugin (native SQLite)  
+  - Exposes typed repositories (e.g., `TimeEntryRepo`, `CategoryRepo`) with CRUD \+ query methods
+
+
+- **Sync Engine**  
+  A TypeScript service that:  
+    
+  - Listens to local DB changes (via repository events)  
+  - Enqueues operations (create/update/delete) with metadata:  
+    - `entity_id` (UUID)  
+    - `client_timestamp` (ISO 8601 with timezone)  
+    - `operation_type`  
+    - `payload`  
+  - Persists queue in local SQLite (`sync_queue` table)  
+  - On network availability, batches and sends to `/api/v1/sync` (POST)  
+  - Handles responses: marks as synced or retries on failure  
+  - Supports manual and automatic (background) sync modes
+
+
+- **WebSocket Client (Optional)**  
+    
+  - Connects to `/ws/notify` after authentication  
+  - Receives lightweight messages like `{ "type": "sync_required", "user_id": "..." }`  
+  - Triggers a **foreground sync** if app is active; queues signal if in background  
+  - Automatically reconnects on disconnect
+
+
+- **Error Reporter**  
+  Platform-specific integration with GlitchTip:  
+    
+  - **Web**: Initializes GlitchTip JS SDK; captures unhandled errors, promise rejections, and manual `captureException()` calls  
+  - **Mobile**: Uses a custom Capacitor plugin wrapping GlitchTip’s native SDKs (iOS/Android), capturing both JavaScript and native crashes (e.g., SQLite plugin failures)
+
+## 4.2 Application Server
+
+The backend is a **Quarkus (Java 21+)** application exposing REST and WebSocket endpoints. It is stateless, container-friendly, and optimized for low-resource self-hosting.
+
+### Key Components:
+
+- **API Gateway (JAX-RS Resources)**  
+  RESTful endpoints under `/api/v1/`:  
+    
+  - `AuthResource`: Login, logout, refresh token  
+  - `UserResource`: Profile, export, delete account  
+  - `TimeEntryResource`: CRUD \+ aggregation (daily/weekly goals)  
+  - `CategoryResource`: Manage categories  
+  - `SyncResource`: Accepts batched sync operations; returns server state \+ conflicts
+
+
+- **Authentication & RBAC Module**  
+    
+  - Validates JWT tokens (signed with HS256)  
+  - Enforces role-based access:  
+    - `Guest`: Can register/login  
+    - `Standard User`: Full access to own data  
+    - `Admin`: User management (in multi-user mode)  
+  - Uses secure cookie (`HttpOnly`, `Secure`, `SameSite=Strict`) for web; header-based for mobile
+
+
+- **Conflict Resolution Service**  
+  Processes incoming sync batches:  
+    
+  - Compares `client_timestamp` of local vs. server record  
+  - Applies “last client timestamp wins” rule  
+  - Handles soft deletes: propagates `is_deleted = true` with tombstone  
+  - Returns resolved entities to client for reconciliation
+
+
+- **WebSocket Notification Service**  
+    
+  - Maintains authenticated WebSocket sessions per user  
+  - On successful sync write, broadcasts `sync_required` to all other active sessions of the same user  
+  - Does **not** transmit data—only signals that a sync is needed
+
+
+- **Aggregation & Reporting Service**  
+  Computes time summaries (daily, weekly) respecting user timezone  
+    
+  - Caches results for 5 minutes to reduce load  
+  - Used by timeline and analytics views
+
+
+- **GlitchTip Integration**  
+    
+  - Quarkus extension reports unhandled exceptions to self-hosted GlitchTip  
+  - Includes user ID (when available) and request context for debugging
+
+## 4.3 Data Layer
+
+The data layer provides a consistent abstraction over two database engines, selected at deployment time.
+
+### Key Aspects:
+
+- **Database Abstraction**  
+    
+  - **Profile-based configuration**:  
+    - `prod-sqlite`: Embedded SQLite (single-user mode)  
+    - `prod-postgres`: PostgreSQL (multi-user mode)  
+  - Same JPA entities used in both profiles
+
+
+- **Core Entities (Panache)**  
+  All entities use UUID primary keys and include:  
+    
+  - `id: UUID`  
+  - `user_id: UUID` (for multi-tenancy)  
+  - `created_at`, `updated_at`  
+  - `is_deleted: boolean` (soft delete flag)  
+  - `client_timestamp: Instant` (for conflict resolution)
+
+
+- **Multi-Tenancy Enforcement**  
+  Every query includes `WHERE user_id = :currentUserId`, enforced at the repository level. No row-level security (RLS) in DB—logic is application-enforced for portability.  
+    
+- **Indexing Strategy**  
+    
+  - `(user_id, client_timestamp)` for efficient sync diffing  
+  - `(user_id, date_trunc('day', start_time))` for daily aggregations
+
+## 4.4 Component Diagram
+
+```mermaid
+%%{init: {'theme': 'default'}}%%
+
+graph TD
+
+    subgraph "Client (React \+ Capacitor)"
+
+        A\[Zustand Store\]
+
+        B\[UI Shell\<br\>React \+ Bootstrap\]
+
+        C\[Local Data Access\<br\>SQLite Abstraction\]
+
+        D\[Sync Engine\]
+
+        E\[WebSocket Client\]
+
+        F\[Error Reporter\<br\>Web / Mobile\]
+
+    end
+
+    subgraph "Server (Quarkus)"
+
+        G\[API Gateway\<br\>JAX-RS\]
+
+        H\[Auth & RBAC\]
+
+        I\[Conflict Resolution\]
+
+        J\[WebSocket Notify\]
+
+        K\[Aggregation Service\]
+
+        L\[GlitchTip Backend Hook\]
+
+    end
+
+    subgraph "Data"
+
+        M\[TimeEntry Repository\]
+
+        N\[Category Repository\]
+
+        O\[User Repository\]
+
+        P\[SyncQueue Repository\]
+
+    end
+
+    %% Client internal
+
+    B \--\> A
+
+    A \--\> C
+
+    C \--\> M
+
+    C \--\> N
+
+    D \--\> C
+
+    D \--\> G
+
+    E \--\> J
+
+    F \--\>|Send| L
+
+    %% Server internal
+
+    G \--\> H
+
+    G \--\> I
+
+    G \--\> K
+
+    I \--\> M
+
+    I \--\> N
+
+    J \--\>|Broadcast| E
+
+    L \--\>|Report| GlitchTip\[(GlitchTip Server)\]
+
+    %% Data access
+
+    M \--\>|Panache| DB\[(PostgreSQL / SQLite)\]
+
+    N \--\>|Panache| DB
+
+    O \--\>|Panache| DB
+
+    P \--\>|Panache| DB
+
+    style A fill:\#FFC107
+
+    style B fill:\#4CAF50,color:white
+
+    style C fill:\#00BCD4
+
+    style D fill:\#9C27B0,color:white
+
+    style E fill:\#673AB7,color:white
+
+    style F fill:\#F44336,color:white
+
+    style G fill:\#E91E63,color:white
+
+    style H fill:\#FF9800
+
+    style I fill:\#3F51B5,color:white
+
+    style J fill:\#673AB7,color:white
+
+    style K fill:\#009688,color:white
+
+    style L fill:\#F44336,color:white
+
+    style M fill:\#8BC34A
+
+    style N fill:\#8BC34A
+
+    style O fill:\#8BC34A
+
+    style P fill:\#8BC34A
+
+```
+This component decomposition ensures modularity, testability, and clear ownership—enabling independent evolution of frontend, sync logic, and backend services while preserving the local-first guarantee.  
+You're absolutely right — **`admin_settings`** should represent **system-wide configuration**, not be tied to a specific user. While an admin *user* may modify it, the settings themselves belong to the **system**, not to any individual.
+
+We’ll correct this by:
+
+- Removing the `owner_user_id` foreign key  
+- Treating `admin_settings` as a **singleton system entity**  
+- Using `updated_by_user_id` (optional) only for audit logging, not ownership
+
+Below is the **revised Chapter 5: Data Architecture** with this correction.
 
 ---
 
-## **4.5 Cross-Cutting Concerns**
+# 5\. Data Architecture
 
-| Concern | Implementation |
-| :---- | :---- |
-| **Authentication** | JWT verified via `@RolesAllowed` \+ custom `SecurityIdentity` |
-| **Data Isolation** | Every repository method filters by `currentUserId()` |
-| **Validation** | Bean Validation (`@NotNull`, `@Future`, custom `@ValidTimeRange`) |
-| **Error Handling** | Global exception mapper → standardized JSON errors |
-| **Logging** | Structured JSON logs with request ID tracing |
-| **Testing** | Each service has unit tests (Mockito) and integration tests (Quarkus @QuarkusTest) |
+This chapter defines the data model, storage strategy, and synchronization semantics that enable **offline-first operation**, **multi-device consistency**, and **self-hosted data ownership**. The design ensures that all entities can be created offline, synchronized reliably, and reconciled without data loss.
 
----
+## 5.1 Conceptual Data Model
 
-## **4.6 Traceability Matrix (Sample)**
+The core domain consists of four primary entities:
 
-| FRD ID | Component(s) | Verification Method |
-| :---- | :---- | :---- |
-| FR-CORE-01.1 | `TimerService`, `TimerResource` | Unit test \+ Postman |
-| FR-IAM-05.1 | `UserService.deleteAccount()` | Integration test (cascade delete) |
-| FR-SET-03.2 | `SyncCoordinator`, `RecordService` | E2E test (offline → online sync) |
-| FR-ANA-02 | `AggregationService` | Snapshot test (chart data output) |
+- **User**: Represents an authenticated account. Supports single-user (personal) and multi-user (shared instance) modes.  
+- **Category**: A user-defined label for time entries (e.g., “Work”, “Exercise”). Can be renamed or deleted.  
+- **TimeEntry**: A recorded interval with start/end timestamps, associated category, and optional notes.  
+- **AdminSettings**: System-wide configuration managed by any user with the `admin` role. Includes SMTP settings for email delivery (e.g., password reset, email verification).
 
----
+All user-owned entities are **scoped to a single user** and must never be visible to others. Deletions are **logical (soft deletes)** to enable propagation across devices. **AdminSettings** is a **system-level singleton**, accessible only to administrators and **not associated with any specific user**.
 
-# **Chapter 5: Data Architecture**
+## 5.2 Logical Data Schema
 
-## **5.1 Overview**
+The following diagram shows the relational schema used on both client (SQLite) and server (PostgreSQL/SQLite). All tables use **UUIDs as primary keys** to support offline creation.
 
-This chapter defines the logical and physical data models for the **Cloud Time Tracker** system. The architecture supports two deployment modes:
-
-- **Cloud Mode**: Uses **PostgreSQL** for production-grade scalability, concurrency, and reliability.  
-- **Local/Offline Mode**: Uses **SQLite** for development, testing, or mobile offline scenarios (via Capacitor).
-
-Despite differing engines, the system maintains a **single logical schema** to ensure code consistency. All data is strictly **user-scoped** to enforce multi-tenancy at the row level, as required by **FR-IAM-04** and **NFR-SEC-03**.
-
-The design prioritizes:
-
-- **Data integrity** (via constraints and cascades)  
-- **Query performance** (via indexing and UTC-normalized timestamps)  
-- **GDPR compliance** (via hard-delete on account removal)
-
----
-
-## **5.2 Logical Data Model**
-
-The conceptual entities from **FRD Chapter 10** are formalized into a normalized relational model. Each entity includes attributes, relationships, and cardinality.
-
-### **Entity Relationship Diagram (ERD – Logical View)**
 ```mermaid
 erDiagram
 
-    USER ||--o{ CATEGORY : owns
+    users ||--o{ categories : "1:N"
 
-    USER ||--o{ TAG : owns
+    users ||--o{ time\_entries : "1:N"
 
-    USER ||--o{ TIME_RECORD : owns
+    users {
 
-    USER ||--o{ RUNNING_TIMER : owns
-
-    CATEGORY {
-
-        UUID category_id PK
-
-        UUID user_id FK
-
-        string name
-
-        string hex_color
-
-        string icon_id
-
-        boolean is_archived
-
-    }
-
-    TAG {
-
-        UUID tag_id PK
-
-        UUID user_id FK
-
-        string name
-
-    }
-
-    TIME_RECORD {
-
-        UUID record_id PK
-
-        UUID user_id FK
-
-        UUID category_id FK
-
-        timestamp start_timestamp
-
-        timestamp end_timestamp
-
-        bigint duration_seconds
-
-        text note
-
-    }
-
-    RECORD_TAG {
-
-        UUID record_id FK
-
-        UUID tag_id FK
-
-    }
-
-    RUNNING_TIMER {
-
-        UUID timer_id PK
-
-        UUID user_id FK
-
-        UUID category_id FK
-
-        timestamp start_timestamp
-
-    }
-
-    USER {
-
-        UUID user_id PK
+        uuid id PK
 
         string email
 
-        string password_hash
+        string password\_hash
+
+        string timezone
 
         string role
 
-        jsonb settings
+        boolean is\_deleted
 
-        timestamp created_at
+        timestamp created\_at
 
-        timestamp last_login
+        timestamp updated\_at
 
-```
- 
-
-**Note**:
-
-- `UUID` is used for all primary keys to avoid sequential ID leakage and simplify sync logic.  
-- `settings` is stored as `JSONB` (PostgreSQL) or `TEXT` (SQLite) to support dynamic preferences (**FR-SET-01**).  
-- `RECORD_TAG` implements the many-to-many relationship between records and tags (**FR-TAX-02.3**).
-
----
-
-## **5.3 Physical Schema per Database**
-
-While the logical model is unified, physical implementation adapts to each database’s capabilities.
-
-### **5.3.1 PostgreSQL (Cloud Production)**
-
-| Feature | Implementation |
-| :---- | :---- |
-| **Primary Keys** | `UUID` with `gen_random_uuid()` default |
-| **Timestamps** | `TIMESTAMP WITH TIME ZONE` (stored in UTC) |
-| **User Settings** | `JSONB` column for efficient querying and indexing |
-| **Indexing** |  |
-
-- `(user_id, start_timestamp)` on `time_record` → fast date-range queries (**FR-ANA-03.1**)  
-- `(user_id, email)` unique index on `user` → enforce **FR-IAM-01.5**  
-- GIN index on `settings` if needed for future feature expansion | | **Constraints** | Foreign keys with `ON DELETE CASCADE` for user deletion (**FR-IAM-05.1**) |
-
-### **5.3.2 SQLite (Local/Offline Mobile)**
-
-| Feature | Implementation |
-| :---- | :---- |
-| **Primary Keys** | `TEXT` (UUID as string) |
-| **Timestamps** | `TEXT` in ISO 8601 format (`YYYY-MM-DD HH:MM:SS.SSSZ`) |
-| **User Settings** | `TEXT` (serialized JSON) |
-| **Indexing** | Same logical indexes as PostgreSQL, but limited to B-tree |
-| **Constraints** | Foreign key enforcement enabled via `PRAGMA foreign_keys = ON` |
-
-✅ **FRD Alignment**: Enables **FR-SET-03.3** (offline mobile with local SQLite) while maintaining API compatibility.
-
----
-
-## **5.4 Multi-Tenancy Strategy**
-
-The system uses **row-level isolation**—not separate schemas or databases—to keep costs low and simplify operations.
-
-- Every table (except `user`) has a `user_id` column.  
-- All service-layer queries **must** include `WHERE user_id = :currentUserId`.  
-- Enforced via:  
-  - **Hibernate `@Filter`** (applied globally in Quarkus)  
-  - **Manual validation** in repositories as a safety net
-
-⚠️ **Security Note**: This satisfies **NFR-SEC-03** (“queries must always include `WHERE user_id = X`”).
-
----
-
-## **5.5 Data Lifecycle & Integrity Rules**
-
-### **5.5.1 Referential Integrity**
-
-| Action | Behavior |
-| :---- | :---- |
-| **Delete User** | Cascade delete all `Category`, `Tag`, `TimeRecord`, `RunningTimer` (**FR-IAM-05.1**, **DATA-INT-01**) |
-| **Delete Category** | Block unless user chooses to: |
-| a) Delete all associated records, or |  |
-| b) Reassign to “Uncategorized” (**FR-TAX-01.4**) |  |
-| **Delete Tag** | Orphaned tags are removed; no cascade to records (tags are soft-referenced) |
-
-### **5.5.2 Timestamp Handling**
-
-- All timestamps are **stored in UTC** (**DATA-INT-02**).  
-- Conversion to local time occurs **only in the frontend** using the user’s timezone setting (**FR-SET-01.2**).  
-- Example: A record from 9 AM EST is stored as `2026-01-24T14:00:00Z`.
-
-### **5.5.3 Duration Calculation**
-
-- `duration_seconds` is **derived** from `end_timestamp - start_timestamp`.  
-- Updated automatically on record edit (**FR-CORE-03.1**).  
-- Prevents client-side tampering.
-
----
-
-## **5.6 Migration Strategy**
-
-Schema evolution is managed by **Flyway**, with conditional scripts per database.
-
-### **Directory Structure**
-
-src/main/resources/db/
-
-├── migration/
-
-│   ├── V1\_\_init\_postgresql.sql
-
-│   └── V1\_\_init\_sqlite.sql
-
-└── conf/
-
-    ├── postgresql.conf
-
-    └── sqlite.conf
-
-### **Quarkus Configuration**
-
-\# Enable Flyway
-
-quarkus.flyway.migrate-at-start=true
-
-\# PostgreSQL (prod)
-
-%prod.quarkus.datasource.db-kind=postgresql
-
-%prod.quarkus.flyway.locations=db/migration/postgresql
-
-\# SQLite (dev/mobile)
-
-%dev.quarkus.datasource.db-kind=sqlite
-
-%dev.quarkus.flyway.locations=db/migration/sqlite
-
-✅ **Benefit**: Ensures both databases stay in sync with business logic changes.
-
----
-
-## **5.7 Data Export & GDPR Compliance**
-
-### **CSV Export (FR-CORE-04)**
-
-- Backend generates CSV from `time_record` with joined `category.name` and `tag.name`.  
-- Includes only current user’s data.  
-- Respects date filters (**FR-CORE-04.2**).
-
-### **Full Data Export (FR-SET-04.1)**
-
-- Exports all user data as **JSON** (for portability):  
-    
-  {  
-    
-    "categories": \[...\],  
-    
-    "tags": \[...\],  
-    
-    "records": \[...\],  
-    
-    "settings": {...}  
-    
-  }  
-    
-- Used for GDPR “Right to Access”.
-
-### **Account Deletion (FR-IAM-05.1)**
-
-- Implemented as a **hard delete** with cascade.  
-- Verified via integration test that no orphaned records remain.
-
----
-
-## **5.8 Indexing Strategy**
-
-| Table | Index | Purpose |
-| :---- | :---- | :---- |
-| `time_record` | `(user_id, start_timestamp DESC)` | Fast dashboard loading (**FR-ANA-01.3**) |
-| `time_record` | `(user_id, category_id, start_timestamp)` | Category-based analytics (**FR-ANA-02.1**) |
-| `user` | `(email)` UNIQUE | Enforce unique registration (**FR-IAM-01.5**) |
-| `running_timer` | `(user_id)` UNIQUE | Enforce single active timer (**FR-CORE-01.3**) |
-
-✅ Supports **NFR-PERF-01** (API \<200ms) even with 10k+ records.
-
----
-
- 
-
-# **Chapter 6: API Specification**
-
-## **6.1 Overview**
-
-This chapter defines the **RESTful API contract** between the Cloud Time Tracker frontend clients (Web and Mobile) and the Quarkus backend. The API follows a **resource-oriented**, **stateless**, and **secure** design, using **JSON over HTTPS** for all communication.
-
-Key design principles:
-
-- **Idempotency**: Safe retry of requests (e.g., `POST /records` includes client-generated ID).  
-- **Consistent Error Format**: All errors return structured JSON.  
-- **RBAC Enforcement**: Every endpoint validates user role and ownership.  
-- **UTC Timestamps**: All date/time values use ISO 8601 in UTC (`2026-01-24T15:30:00Z`).  
-- **Pagination**: For large collections (e.g., records), to meet **NFR-PERF-01**.
-
-The API is versioned via path prefix: `/api/v1`.
-
----
-
-## **6.2 Authentication & Authorization**
-
-### **6.2.1 Token Flow**
-
-1. Client sends credentials to `POST /api/v1/auth/login`.  
-2. Server responds with:  
-     
-   {  
-     
-     "access\_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxx",  
-     
-     "refresh\_token": "def50200a1b2c3d4...",  
-     
-     "expires\_in": 900  
-     
-   }  
-     
-3. Client includes `Authorization: Bearer <access_token>` in all subsequent requests.  
-4. On `401`, client uses `refresh_token` at `POST /api/v1/auth/refresh` to get a new `access_token`.
-
-### **6.2.2 Role-Based Access Control (RBAC)**
-
-- **Standard User**: Can access only their own data (`user_id` matches JWT subject).  
-- **Administrator**: Can access `/admin/*` endpoints (e.g., user list).  
-- Enforced via Quarkus `@RolesAllowed` and custom `@UserScoped` interceptor.
-
----
-
-## **6.3 API Endpoints (OpenAPI Summary)**
-
-Full OpenAPI 3.0 spec can be auto-generated by Quarkus (`/q/openapi`).
-
-### **6.3.1 Identity & Access Management (IAM)**
-
-| Endpoint | Method | Description | RBAC | FRD Trace |
-| :---- | :---- | :---- | :---- | :---- |
-| `/auth/register` | `POST` | Create new Standard User | Guest | FR-IAM-01 |
-| `/auth/login` | `POST` | Authenticate & issue tokens | Guest | FR-IAM-02 |
-| `/auth/logout` | `POST` | Invalidate refresh token | Authenticated | FR-IAM-02.5 |
-| `/auth/refresh` | `POST` | Exchange refresh token for new access token | Authenticated | FR-IAM-06.2 |
-| `/auth/forgot-password` | `POST` | Request password reset email | Guest | FR-IAM-03.1 |
-| `/auth/reset-password` | `POST` | Set new password using token | Guest | FR-IAM-03.1 |
-| `/users/me` | `GET` | Get current user profile | Authenticated | FR-IAM-02 |
-| `/users/me` | `PATCH` | Update email/settings | Authenticated | FR-SET-01 |
-| `/users/me/password` | `PUT` | Change password (requires current) | Authenticated | FR-IAM-03.2 |
-| `/users/me` | `DELETE` | Delete own account (hard delete) | Authenticated | FR-IAM-05.1 |
-
-### **6.3.2 Taxonomy (Categories, Tags, Goals)**
-
-| Endpoint | Method | Description | RBAC | FRD Trace |
-| :---- | :---- | :---- | :---- | :---- |
-| `/categories` | `GET` | List user’s categories | Authenticated | FR-TAX-01.2 |
-| `/categories` | `POST` | Create category | Authenticated | FR-TAX-01.1 |
-| `/categories/{id}` | `PUT` | Update category | Authenticated | FR-TAX-01.3 |
-| `/categories/{id}` | `DELETE` | Delete category (with prompt logic) | Authenticated | FR-TAX-01.4 |
-| `/tags` | `GET` | List user’s tags | Authenticated | FR-TAX-02.1 |
-| `/tags` | `POST` | Create tag | Authenticated | FR-TAX-02.1 |
-| `/goals` | `GET` | List user’s goals | Authenticated | FR-TAX-03.1 |
-| `/goals` | `POST` | Create goal | Authenticated | FR-TAX-03.1 |
-
-### **6.3.3 Time Tracking Core**
-
-| Endpoint | Method | Description | RBAC | FRD Trace |
-| :---- | :---- | :---- | :---- | :---- |
-| `/timers/active` | `GET` | Get current running timer | Authenticated | FR-CORE-01.1 |
-| `/timers/start` | `POST` | Start new timer (stops any active) | Authenticated | FR-CORE-01.1, FR-CORE-01.3 |
-| `/timers/stop` | `POST` | Stop active timer → creates record | Authenticated | FR-CORE-01.4 |
-| `/records` | `GET` | List records (paginated, filterable) | Authenticated | FR-CORE-03 |
-| `/records` | `POST` | Create manual record | Authenticated | FR-CORE-02 |
-| `/records/{id}` | `GET` | Get single record | Authenticated | FR-CORE-03 |
-| `/records/{id}` | `PUT` | Update record | Authenticated | FR-CORE-03.1 |
-| `/records/{id}` | `DELETE` | Delete record | Authenticated | FR-CORE-03.2 |
-| `/records/export` | `GET` | CSV export (with date range) | Authenticated | FR-CORE-04 |
-
-### **6.3.4 Analytics**
-
-| Endpoint | Method | Description | RBAC | FRD Trace |
-| :---- | :---- | :---- | :---- | :---- |
-| `/analytics/dashboard` | `GET` | Today’s summary \+ recent records | Authenticated | FR-ANA-01 |
-| `/analytics/distribution` | `GET` | Pie chart data (by category/tag) | Authenticated | FR-ANA-02.1 |
-| `/analytics/trends` | `GET` | Bar/line chart data (time series) | Authenticated | FR-ANA-02.2 |
-| `/analytics/timeline` | `GET` | Chronological blocks for a day | Authenticated | FR-ANA-04 |
-
-### **6.3.5 Admin Endpoints**
-
-| Endpoint | Method | Description | RBAC | FRD Trace |
-| :---- | :---- | :---- | :---- | :---- |
-| `/admin/users` | `GET` | List all users | Administrator | FR-IAM-04.3 |
-| `/admin/users/{id}/ban` | `POST` | Disable user login | Administrator | FR-IAM-05.2 |
-| `/admin/users/{id}` | `DELETE` | Hard-delete user | Administrator | FR-IAM-05.2 |
-
----
-
-## **6.4 Request/Response Examples**
-
-### **6.4.1 Successful Response (200 OK)**
-
-GET /api/v1/categories
-
-{
-
-  "data": \[
-
-    {
-
-      "id": "cat-1",
-
-      "name": "Work",
-
-      "hex\_color": "\#FF5733",
-
-      "icon\_id": "💼"
+        timestamp client\_timestamp
 
     }
 
-  \]
+    categories {
 
-}
+        uuid id PK
 
-### **6.4.2 Error Response (4xx/5xx)**
+        uuid user\_id FK
 
-All errors follow this format (**DATA-API-03**):
+        string name
 
-{
+        boolean is\_deleted
 
-  "error": {
+        timestamp created\_at
 
-    "code": "VALIDATION\_ERROR",
+        timestamp updated\_at
 
-    "message": "End time must be after start time",
+        timestamp client\_timestamp
 
-    "field": "end\_timestamp"
+    }
 
-  }
+    time\_entries {
 
-}
+        uuid id PK
 
-| HTTP Code | Use Case |
-| :---- | :---- |
-| `400 Bad Request` | Invalid input (e.g., malformed email) |
-| `401 Unauthorized` | Missing/invalid JWT |
-| `403 Forbidden` | Authenticated but lacks permission (e.g., accessing another user’s data) |
-| `404 Not Found` | Resource not found or not owned by user |
-| `409 Conflict` | Business rule violation (e.g., duplicate category name) |
-| `500 Internal Server Error` | Unhandled exception (logged server-side) |
+        uuid user\_id FK
 
----
+        uuid category\_id FK
 
-## **6.5 Pagination & Filtering**
+        timestamp start\_time
 
-### **6.5.1 Pagination (for `/records`)**
+        timestamp end\_time
 
-Query parameters:
+        string notes
 
-- `page=1` (default)  
-- `size=20` (max 100\)
+        boolean is\_deleted
 
-Response:
+        timestamp created\_at
 
-{
+        timestamp updated\_at
 
-  "data": \[...\],
+        timestamp client\_timestamp
 
-  "pagination": {
+    }
 
-    "page": 1,
+    admin\_settings {
 
-    "size": 20,
+        uuid id PK
 
-    "total\_pages": 5,
+        string smtp\_host
 
-    "total\_elements": 98
+        int smtp\_port
 
-  }
+        string smtp\_username
 
-}
+        string smtp\_password\_encrypted
 
-### **6.5.2 Filtering (Analytics & Records)**
+        boolean smtp\_tls
 
-Supported query params:
+        string from\_email
 
-- `start_date=2026-01-01`  
-- `end_date=2026-01-31`  
-- `category_ids=cat-1,cat-2`  
-- `tag_ids=tag-a`
+        boolean email\_verification\_enabled
 
-✅ Enables **FR-ANA-03.1–03.3** and **FR-CORE-04.2**
+        uuid last\_updated\_by\_user\_id FK "Audit only"
 
----
+        boolean is\_deleted
 
-## **6.6 Security & Compliance**
+        timestamp created\_at
 
-- **HTTPS Only**: Enforced via Quarkus config (`quarkus.http.ssl.certificate.*`)  
-- **CORS**: Restricted to trusted origins (Web domain, mobile app schemes)  
-- **Rate Limiting**: 100 requests/minute per IP (to prevent abuse)  
-- **Input Sanitization**: All string inputs validated against allowlists (e.g., hex color regex `^#[0-9A-F]{6}$`)  
-- **GDPR**: No PII in logs; `user_id` anonymized in monitoring
+        timestamp updated\_at
 
----
+        timestamp client\_timestamp
 
-## **6.7 Versioning & Extensibility**
+    }
 
-- **Path-based versioning**: `/api/v1/...`  
-- **Backward Compatibility**: Never remove fields; deprecate with `X-API-Warn` header  
-- **Future-Proofing**:  
-  - All POST/PUT bodies include optional `client_id` for conflict resolution (**FR-SET-03.2**)  
-  - Webhooks planned for v2 (e.g., goal achieved → notify client)
+```
+**Key Notes**:
 
----
+- `admin_settings` is a **system-wide singleton** — only one active record (`is_deleted = false`) exists per instance.  
+- It is **not owned by any user**; any user with `role = 'admin'` can update it.  
+- `last_updated_by_user_id`: Optional foreign key to `users.id` for **audit purposes only** (not for access control).  
+- `smtp_password_encrypted`: Stored encrypted at rest using a server-managed key (e.g., via Quarkus Vault or filesystem-based secret).  
+- **Not synced to clients**: This table exists **only on the server** and is never replicated to mobile or web local databases.
 
- 
+## 5.3 UUID-Based Identity Strategy
 
-# **Chapter 7: Cross-Platform Strategy**
+- All primary keys are **UUIDs (v4)**, generated by the client at creation time (for user-owned entities).  
+- **Exception**: `admin_settings.id` is a UUID but is **created once by the server** during first-run initialization (e.g., on first admin login or setup wizard).  
+- UUIDs are stored as `TEXT` in SQLite and `UUID` type in PostgreSQL (mapped via Hibernate).  
+- Foreign keys (e.g., `category_id` in `time_entries`) also use UUIDs, enabling referential integrity even when parent entities are created offline.
 
-## **7.1 Overview**
+## 5.4 Soft Delete & Tombstone Propagation
 
-The Cloud Time Tracker must deliver a consistent, high-fidelity experience across **Web (desktop/mobile browsers)** and **Native Mobile (iOS/Android)** while maintaining a **single shared codebase**. This chapter details the architectural and implementation strategy to achieve this goal using **React \+ Vite** as the core frontend stack, wrapped with **Capacitor** for mobile deployment.
+- When a user deletes a record, it is **not removed** from the database. Instead:  
+  - `is_deleted = true`  
+  - `client_timestamp` is updated to the deletion time  
+- During sync:  
+  - The server applies the same soft-delete logic  
+  - Deleted records are included in sync responses so other clients can remove them locally  
+- **Tombstones are retained indefinitely** to ensure eventual consistency across all devices.  
+- **AdminSettings**: Soft delete is used only during configuration updates (to keep history); the system always uses the latest non-deleted record.
 
-Key objectives:
+## 5.5 Local vs. Server Data Partitioning
 
-- **Maximize code reuse** (\>90% shared logic/UI)  
-- **Preserve platform-specific UX** (e.g., native notifications on mobile, keyboard shortcuts on web)  
-- **Support offline-first behavior on mobile** (**FR-SET-03.3**)  
-- **Ensure real-time sync** between devices (**FR-SET-03.1**, **FR-CORE-05.1**)
+To balance performance and functionality, the client maintains a **7-day local cache**:
 
----
+- **Local SQLite (Client)**:  
+    
+  - Stores **all pending operations** (sync queue)  
+  - Stores **full timeline for the last 7 days**  
+  - Stores **all user categories**  
+  - Does **not store historical data beyond 7 days**  
+  - **Does not store `admin_settings`** — this is server-only
 
-## **7.2 Architecture: Shared Codebase with Platform Adapters**
 
-The frontend is structured as a **monorepo-style React application** with clear separation between:
+- **Server Database**:  
+    
+  - Stores **complete history** for all time entries  
+  - Stores **all user accounts**  
+  - Stores **exactly one active `admin_settings` record**  
+  - Serves aggregated reports and handles email delivery using SMTP config  
+  - Provides full data export (CSV/JSON)
 
-- **Shared logic** (business rules, API clients, state)  
-- **Platform-adaptive UI/components**  
-- **Native bridge modules** (mobile-only capabilities)
 
-### **Directory Structure**
+- **Sync Behavior**:  
+    
+  - Clients sync only user-scoped data  
+  - Email features (e.g., password reset) are triggered server-side using the current `admin_settings`  
+  - Admin UI (web-only) allows editing system settings; changes take effect immediately
 
-/src
+This design ensures **secure, auditable, and shared administrative control** while maintaining strict data isolation for regular users.
 
-├── shared/               \# 100% shared logic
+# 6\. Synchronization Design
 
-│   ├── api/              \# Axios client, interceptors
+This chapter details the **offline-first synchronization engine** that enables seamless multi-device time tracking while preserving data integrity, handling conflicts, and operating reliably under intermittent connectivity. The design ensures that users can work offline indefinitely and reconcile changes safely when reconnected.
 
-│   ├── store/            \# Zustand stores (auth, timer, settings)
+## 6.1 Sync Engine Workflow
 
-│   ├── utils/            \# Time helpers, validation, conflict resolution
+The sync process follows a **client-driven, queue-based model**:
 
-│   └── types/            \# TypeScript interfaces
+1. **Local Write**: All user actions (create/update/delete) are immediately written to the local SQLite database with a client-generated `client_timestamp`.  
+2. **Queue Enqueue**: The operation is added to a persistent `sync_queue` table with metadata:  
+   - `entity_id` (UUID)  
+   - `entity_type` (`time_entry`, `category`)  
+   - `operation` (`create`, `update`, `delete`)  
+   - `payload` (full entity snapshot)  
+   - `client_timestamp`  
+   - `status` (`pending`, `sent`, `failed`, `conflict`)  
+3. **Background Sync**: When online, the client periodically:  
+   - Collects all `pending` operations  
+   - Sends them as a batch to `/api/v1/sync` (POST)  
+   - Waits for server response  
+4. **Server Processing**: The server:  
+   - Validates ownership (`user_id`)  
+   - Applies conflict resolution logic  
+   - Persists changes  
+   - Returns resolved entities and any conflicts  
+5. **Client Reconciliation**: The client:  
+   - Updates local records with server-confirmed values  
+   - Marks queue items as `sent`  
+   - Triggers UI refresh  
+6. **WebSocket Signal (Optional)**: If another device syncs, the server sends a `sync_required` message via WebSocket to other active sessions of the same user, prompting a foreground sync.
 
-├── features/             \# Feature modules (auth, dashboard, records, etc.)
+**Note**: Sync is **not real-time data push**—it’s a **notification to pull**. This preserves offline correctness.
 
-│   └── \[feature\]/
+## 6.2 Conflict Detection & Resolution Logic
 
-│       ├── components/   \# Shared UI components
+Conflicts occur when the same entity is modified on two devices while offline.
 
-│       ├── hooks/        \# Shared custom hooks
+### Conflict Detection
 
-│       └── platform/     \# Platform-specific overrides (optional)
+- Each entity has a `client_timestamp` (ISO 8601 with timezone offset).  
+- On sync, the server compares the incoming `client_timestamp` with the stored one.
 
-├── platforms/
+### Resolution Rule
 
-│   ├── web/              \# Web-only entry point & overrides
+- **“Last Client Timestamp Wins”**: The operation with the later `client_timestamp` overwrites the earlier one.  
+- **Tie-breaking**: If timestamps are identical (rare), the server uses lexicographic comparison of `entity_id` as a deterministic fallback.
 
-│   └── mobile/           \# Capacitor config, native plugins
+### Special Cases
 
-└── App.tsx               \# Root component with platform detection
+- **Category Deletion vs. Time Entry Update**:  
+  If a category is deleted on Device A, but Device B updates a time entry using that category while offline, the time entry retains the `category_id`. The UI will show “(Deleted Category)” until the user reassigns it.  
+- **Soft Deletes**:  
+  A `delete` operation sets `is_deleted = true` and updates `client_timestamp`. This tombstone propagates to all devices.
 
-✅ **FRD Alignment**: Enables **FR-IAM-02.4** (“Remember Me”), **FR-ANA-01.2** (active timer on all devices), and **FR-SET-01.1** (theme sync).
+This strategy ensures **deterministic, automatic resolution** without user intervention, while preserving auditability.
 
----
+## 6.3 Sync Queue Structure
 
-## **7.3 Cross-Platform UI Strategy**
+The client maintains a dedicated SQLite table for pending operations:
 
-### **7.3.1 Shared Components with Adaptive Rendering**
+```sq
+CREATE TABLE sync\_queue (
 
-Components detect the platform at runtime and render appropriate elements:
+    id TEXT PRIMARY KEY,               \-- UUID
 
-// Example: Platform-aware Button
+    entity\_id TEXT NOT NULL,           \-- UUID of affected entity
 
-import { isPlatform } from '@ionic/capacitor';
+    entity\_type TEXT NOT NULL,         \-- 'time\_entry' | 'category'
 
-const TimerButton \= () \=\> {
+    operation TEXT NOT NULL,           \-- 'create' | 'update' | 'delete'
 
-  if (isPlatform('ios') || isPlatform('android')) {
+    payload TEXT NOT NULL,             \-- JSON-serialized entity
 
-    return \<NativeButton variant="filled" onPress={startTimer} /\>;
+    client\_timestamp TEXT NOT NULL,    \-- ISO 8601
 
-  }
+    status TEXT NOT NULL DEFAULT 'pending', \-- 'pending' | 'sent' | 'failed' | 'conflict'
 
-  return \<button className="web-button" onClick={startTimer}\>Start\</button\>;
+    created\_at TEXT NOT NULL,
 
-};
+    updated\_at TEXT NOT NULL
 
-### **7.3.2 Responsive Design for Web**
+```
+);
 
-- Uses CSS Grid/Flexbox \+ media queries  
-- Adapts layout for mobile browsers (**NFR-USE-01**)  
-- Touch targets ≥ 48px for mobile usability
+- **Persistence**: Survives app restarts and device reboots.  
+- **Ordering**: Operations are sent in `client_timestamp` order to preserve causality.  
+- **Retry Logic**: Failed batches are retried with exponential backoff (max 3 attempts), then marked `failed` for manual retry.  
+- **Cleanup**: Items with `status = 'sent'` are purged after 7 days.
 
-### **7.3.3 Native Mobile Enhancements (via Capacitor)**
+## 6.4 Sequence Diagram
 
-| Capability | Plugin | FRD Requirement |
-| :---- | :---- | :---- |
-| Local Notifications | `@capacitor/local-notifications` | **FR-SET-02.1**, **FR-SET-02.2** |
-| Secure Storage | `@capacitor/preferences` \+ encryption | **FR-IAM-06.2** (refresh token storage) |
-| Background Sync | Custom background task | **FR-SET-03.3** |
-| SQLite DB | `@capacitor-community/sqlite` | **FR-SET-03.3** (offline data) |
+The following diagram illustrates a typical offline-to-sync flow:
 
----
-
-## **7.4 State Synchronization Architecture**
-
-To satisfy **FR-CORE-05.1** and **FR-SET-03.1**, the system uses a **hybrid sync model**:
-
-### **7.4.1 Real-Time Sync (Online Mode)**
-
-- **Web**: Polls `/timers/active` every **5 seconds** (MVP); WebSocket upgrade path.  
-- **Mobile**: Same polling logic; can use **Capacitor Background Task** for periodic sync.  
-- On change (e.g., timer stop), server broadcasts update → clients refresh local state.
-
-### **7.4.2 Offline-First Sync (Mobile Only)**
-
-When offline:
-
-1. User actions (start/stop/edit) are stored in **local SQLite queue**.  
-2. Queue entries include:  
-   - Operation type (`CREATE`, `UPDATE`, `DELETE`)  
-   - Entity ID  
-   - Payload  
-   - Timestamp  
-3. On reconnect:  
-   - Queue is replayed in order  
-   - Conflicts resolved via **“Last Write Wins”** (**FR-SET-03.2**)
-
-### **Sync Flow Diagram**
-
+```mermaid
 sequenceDiagram
 
     participant User
 
-    participant MobileApp
+    participant ClientApp as Client App
 
-    participant LocalDB
+    participant LocalDB as Local SQLite
 
-    participant Backend
+    participant SyncQueue
 
-    participant WebApp
+    participant Server
 
-    User-\>\>MobileApp: Start timer (offline)
+    participant WebSocket
 
-    MobileApp-\>\>LocalDB: Save to sync\_queue
+    User-\>\>ClientApp: Starts timer (offline)
 
-    LocalDB--\>\>MobileApp: Ack
+    ClientApp-\>\>LocalDB: INSERT time\_entry (local)
 
-    Note over MobileApp: Network restored
+    ClientApp-\>\>SyncQueue: ENQUEUE { op: create, ... }
 
-    MobileApp-\>\>Backend: POST /sync (batch)
+    Note over ClientApp: App may be closed or killed
 
-    Backend-\>\>Backend: Process queue, apply LWW
+    alt Later, when online
 
-    Backend--\>\>MobileApp: 200 OK
+        ClientApp-\>\>SyncQueue: Fetch pending ops
 
-    WebApp-\>\>Backend: GET /timers/active (polling)
+        ClientApp-\>\>Server: POST /api/v1/sync \[batch\]
 
-    Backend--\>\>WebApp: Returns active timer
+        Server-\>\>Server: Validate \+ Resolve Conflicts
 
-    WebApp-\>\>WebApp: Update UI
+        Server-\>\>Server: Persist to DB
 
-✅ **FRD Alignment**: Directly implements **FR-SET-03.1–03.3** and **FR-CORE-05.1–05.2**.
+        Server--\>\>ClientApp: 200 OK \+ resolved entities
 
----
+        ClientApp-\>\>LocalDB: UPDATE local records
 
-## **7.5 Data Consistency & Conflict Resolution**
+        ClientApp-\>\>SyncQueue: Mark as 'sent'
 
-### **7.5.1 “Last Write Wins” (LWW)**
+        
 
-- Every record has an `updated_at` timestamp (ISO 8601 UTC).  
-- On sync, server compares incoming `updated_at` with stored value.  
-- If incoming is newer → accept; else → reject or notify.
+        %% Optional: notify other devices
 
-### **7.5.2 Client-Side Optimism**
+        Server-\>\>WebSocket: Broadcast "sync\_required"
 
-- UI updates immediately on user action (even offline).  
-- If sync fails later, show error and allow retry.
-
-### **7.5.3 Idempotency Keys**
-
-- All write operations include a `client_id` (UUID) to prevent duplicate processing on retry.
-
----
-
-## **7.6 Platform-Specific Considerations**
-
-| Concern | Web | Mobile (Capacitor) |
-| :---- | :---- | :---- |
-| **Authentication** | `HttpOnly` cookies for refresh token | Encrypted KeyStore/Keychain |
-| **Notifications** | Browser Push API | Native iOS/Android notifications |
-| **Offline Storage** | IndexedDB (fallback) | SQLite (primary) |
-| **Background Sync** | Not supported | Capacitor Background Task (limited) |
-| **Performance** | Lazy loading, code splitting | Bundle size optimization |
-
-⚠️ **Note**: Mobile background execution is limited by OS (iOS suspends after \~30s). For long-running timers, rely on **server-side persistence** (**FR-CORE-01.5**).
-
----
-
-## **7.7 Testing Strategy**
-
-| Test Type | Tools | Coverage |
-| :---- | :---- | :---- |
-| **Unit Tests** | Vitest | Shared logic, utils, stores |
-| **Component Tests** | React Testing Library | Shared UI components |
-| **E2E (Web)** | Cypress | Full user flows in browser |
-| **E2E (Mobile)** | Detox \+ Capacitor | Native interactions, offline sync |
-| **Sync Simulation** | Custom test harness | Conflict scenarios, offline→online |
-
----
-
-## **7.8 Limitations & Mitigations**
-
-| Limitation | Mitigation |
-| :---- | :---- |
-| **No true background sync on mobile** | Rely on server-side timer state; prompt user to reopen app if timer runs too long |
-| **Capacitor adds \~10MB to bundle** | Use code splitting; lazy-load non-critical features |
-| **UI inconsistencies between platforms** | Strict design system; visual regression testing |
-
----
-
- 
-
-# **Chapter 8: Non-Functional Design**
-
-## **8.1 Overview**
-
-This chapter defines the technical strategies to satisfy the **Non-Functional Requirements (NFRs)** outlined in the FRD (Chapter 9). It covers **security**, **performance**, **scalability**, **usability**, **reliability**, and **compliance**, ensuring the Cloud Time Tracker is not only feature-complete but also **secure**, **responsive**, and **production-ready**.
-
-Each NFR is mapped to specific architectural decisions, code-level practices, or infrastructure configurations.
-
----
-
-## **8.2 Security Design**
-
-### **8.2.1 Data Protection**
-
-| NFR | Implementation |
-| :---- | :---- |
-| **NFR-SEC-01** (HTTPS) | Enforced via Quarkus config: `quarkus.http.ssl.certificate.*`. Redirect HTTP → HTTPS in production. |
-| **NFR-SEC-02** (Password hashing) | Use **Bcrypt** (via `io.quarkus:quarkus-security-jpa`). Work factor \= 12\. |
-| **NFR-SEC-03** (Data isolation) | Every JPA query includes `WHERE user_id = :currentUserId` via Hibernate `@Filter` \+ service-layer validation. |
-| **NFR-SEC-04** (Token security) |  |
-
-- **Web**: Refresh token stored in `HttpOnly`, `Secure`, `SameSite=Strict` cookie.  
-- **Mobile**: Stored in platform KeyStore (Android) / Keychain (iOS) via Capacitor plugin.  
-- Access tokens expire in **15 minutes**. | | **NFR-SEC-05** (Input validation) | All DTOs use Bean Validation (`@Email`, `@Pattern`, `@Future`). SQL injection prevented by Hibernate ORM parameter binding. |
-
-### **8.2.2 Authentication & Session Hardening**
-
-- **Brute-force protection**: Rate-limit `/login` to 5 attempts/minute per IP.  
-- **Session invalidation**: On password change (**FR-IAM-06.3**), all refresh tokens are deleted from DB.  
-- **JWT best practices**: Signed with HS256, no sensitive data in payload, validated on every request.
-
----
-
-## **8.3 Performance Design**
-
-### **8.3.1 Backend Optimizations**
-
-| NFR | Implementation |
-| :---- | :---- |
-| **NFR-PERF-01** (\<200ms API) |  |
-
-- Database indexes on `(user_id, start_timestamp)` for time records.  
-- Quarkus native compilation (optional) for low-latency startup.  
-- Caching: None in MVP (stateless design avoids cache invalidation complexity). | | **NFR-PERF-03** (Dashboard \<1s) |  
-- Aggregated queries precomputed in `AnalyticsService`.  
-- Pagination for record lists (`size=20`). |
-
-### **8.3.2 Frontend Optimizations**
-
-| NFR | Implementation |
-| :---- | :---- |
-| **NFR-PERF-02** (Web load \<1.5s) |  |
-
-- Vite’s native ES modules \+ code splitting.  
-- Static assets served via CDN.  
-- Lazy-load non-critical routes (e.g., Admin panel). | | **Chart rendering** | Use lightweight libraries (e.g., **Chart.js** or **Victory**) with memoized components to avoid re-renders. |
-
----
-
-## **8.4 Scalability & Reliability**
-
-### **8.4.1 Horizontal Scaling**
-
-- **Stateless backend**: Quarkus app can be scaled horizontally behind a load balancer.  
-- **Database**: PostgreSQL supports read replicas for analytics-heavy workloads (future phase).  
-- **Connection pooling**: Configured via Quarkus Agroal (`quarkus.datasource.max-size=20`).
-
-### **8.4.2 Availability & Fault Tolerance**
-
-| NFR | Implementation |
-| :---- | :---- |
-| **NFR-SCALE-02** (99.9% uptime) |  |
-
-- Health checks at `/q/health` (Quarkus built-in).  
-- Container orchestration (e.g., Kubernetes) with auto-healing.  
-- Database backups (daily snapshots \+ point-in-time recovery). | | **Error resilience** |  
-- Circuit breaker pattern for external services (e.g., email).  
-- Idempotent APIs to allow safe retries. |
-
-### **8.4.3 Database Scalability**
-
-- **Indexing**: Critical for `time_records` table (see Chapter 5).  
-- **Partitioning**: Not in MVP, but schema designed to support time-based partitioning later.  
-- **SQLite**: Used only for dev/offline—no scalability expectations.
-
----
-
-## **8.5 Usability & Accessibility (UX/A11Y)**
-
-### **8.5.1 Responsive & Adaptive UI**
-
-| NFR | Implementation |
-| :---- | :---- |
-| **NFR-USE-01** (Mobile web) |  |
-
-- CSS Grid \+ Flexbox with mobile-first breakpoints.  
-- Touch targets ≥ 48px.  
-- Viewport meta tag configured. | | **NFR-USE-03** (2-tap timer start) |  
-- Floating action button (FAB) on dashboard → single tap to start.  
-- Auto-select last-used category. |
-
-### **8.5.2 Accessibility (WCAG 2.1 AA)**
-
-| Requirement | Implementation |
-| :---- | :---- |
-| **Color contrast** | Minimum 4.5:1 for text (verified via axe-core). |
-| **Keyboard navigation** | All interactive elements focusable; logical tab order. |
-| **Screen reader support** | ARIA labels for icons, charts, and timers (e.g., `aria-live="polite"` for elapsed time). |
-| **Reduced motion** | Respects `prefers-reduced-motion` OS setting. |
-
----
-
-## **8.6 Compliance & Data Governance**
-
-### **8.6.1 GDPR Implementation**
-
-| FRD/NFR | Implementation |
-| :---- | :---- |
-| **NFR-COMP-01** (GDPR) |  |
-
-- **Right to Access**: `GET /users/me/export` returns full JSON dump (**FR-SET-04.1**).  
-- **Right to be Forgotten**: `DELETE /users/me` triggers cascade delete (**FR-IAM-05.1**).  
-- No PII in logs; `user_id` anonymized in monitoring. | | **NFR-COMP-02** (Cookie policy) |  
-- Web app shows cookie banner if non-essential cookies are used (e.g., analytics).  
-- Essential cookies (auth) exempt. |
-
-### **8.6.2 Audit & Logging**
-
-- **Structured logging**: JSON logs with `request_id`, `user_id`, `timestamp`.  
-- **Sensitive fields masked**: Passwords, tokens never logged.  
-- **Retention**: Logs retained for 30 days (aligned with backup policy).
-
----
-
-## **8.7 Observability**
-
-### **8.7.1 Monitoring & Alerts**
-
-- **Metrics**: Quarkus Micrometer integration (Prometheus endpoint at `/q/metrics`).  
-- **Key metrics**:  
-  - API latency (p95)  
-  - Error rate (`4xx`, `5xx`)  
-  - Active users  
-- **Alerting**: Trigger on \>1% error rate or latency \>500ms.
-
-### **8.7.2 Tracing**
-
-- **Distributed tracing**: Optional OpenTelemetry integration for future debugging.  
-- **Request ID**: Injected at gateway level; propagated through logs.
-
----
-
-## **8.8 Summary of NFR Fulfillment**
-
-| NFR ID | Status | Verification Method |
-| :---- | :---- | :---- |
-| **NFR-SEC-01–05** | ✅ Implemented | Penetration test, static analysis |
-| **NFR-PERF-01–03** | ✅ Designed | Load testing (k6/Locust) |
-| **NFR-SCALE-01–03** | ✅ Supported | Horizontal scaling test |
-| **NFR-USE-01–03** | ✅ Implemented | Lighthouse audit, manual UX test |
-| **NFR-COMP-01–02** | ✅ Implemented | GDPR compliance checklist |
-
----
-
- 
-
-# **Chapter 9: Deployment & Operations**
-
-## **9.1 Overview**
-
-This chapter defines the deployment architecture, operational procedures, and DevOps practices for the **Cloud Time Tracker** system. It ensures the application can be reliably built, tested, deployed, monitored, and recovered in production—supporting the **99.9% uptime** goal (**NFR-SCALE-02**) and enabling secure, auditable operations.
-
-The strategy supports two primary environments:
-
-- **Cloud Production**: PostgreSQL \+ Quarkus in containers  
-- **Local/Development**: SQLite \+ Quarkus dev mode
-
-Mobile clients are distributed via app stores but share the same backend as the Web client.
-
----
-
-## **9.2 Deployment Environments**
-
-| Environment | Purpose | Database | Auth | Monitoring |
-| :---- | :---- | :---- | :---- | :---- |
-| **Local (Dev)** | Developer workstation | SQLite (file-based) | JWT (no email) | Console logs |
-| **Staging** | Pre-production testing | PostgreSQL (replica) | Full IAM flow | Basic metrics |
-| **Production** | Live user traffic | PostgreSQL (HA cluster) | Full IAM \+ rate limiting | Full observability |
-
-✅ **FRD Alignment**: Supports **FR-SET-03.3** (offline mobile dev with SQLite) and **NFR-SCALE-02** (production HA).
-
----
-
-## **9.3 Build & CI/CD Pipeline**
-
-### **9.3.1 Frontend Build (Web & Mobile)**
-
-- **Tool**: Vite \+ TypeScript  
-- **Output**:  
-  - **Web**: Static assets (`dist/`) → deployed to CDN (e.g., AWS S3 \+ CloudFront)  
-  - **Mobile**: Same `dist/` wrapped by **Capacitor** → built into iOS (.ipa) and Android (.aab) packages  
-- **CI Trigger**: On `main` branch push or PR merge
-
-### **9.3.2 Backend Build**
-
-- **Tool**: Maven \+ Quarkus  
-- **Output**:  
-  - **JVM Mode**: `fast-jar` (default for MVP)  
-  - **Native Mode**: Optional GraalVM native image (for future latency optimization)  
-- **Docker Image**: Multi-stage build → lightweight runtime image
-
-### **9.3.3 CI/CD Workflow (GitHub Actions Example)**
-
-graph LR
-
-    A\[Git Push to main\] \--\> B{Run Tests}
-
-    B \--\>|Pass| C\[Build Frontend\]
-
-    B \--\>|Pass| D\[Build Backend Docker Image\]
-
-    C \--\> E\[Deploy Web to CDN\]
-
-    D \--\> F\[Push Image to Registry\]
-
-    F \--\> G\[Deploy to Staging\]
-
-    G \--\> H\[Manual QA Approval\]
-
-    H \--\> I\[Deploy to Production\]
-
-- **Automated Tests**:  
-  - Unit (JUnit, Vitest)  
-  - Integration (Quarkus `@QuarkusTest`)  
-  - E2E (Cypress for Web, Detox for Mobile)  
-- **Security Scan**: Snyk or Trivy on Docker image
-
----
-
-## **9.4 Infrastructure Architecture (Production)**
-
-### **9.4.1 Cloud Topology**
-
-graph LR
-
-    subgraph "Client Devices"
-
-        W\[Web Browser\]
-
-        M\[iOS / Android\]
+        WebSocket-\>\>OtherClient: Trigger foreground sync
 
     end
 
-    subgraph "Cloud Provider (e.g., AWS)"
-
-        CF\[CloudFront\<br\>(CDN)\]
-
-        S3\[S3 Bucket\<br\>(Web Assets)\]
-
-        ALB\[Application Load Balancer\]
-
-        ECS\[ECS Cluster\<br\>(Quarkus Containers)\]
-
-        RDS\[RDS PostgreSQL\<br\>(Multi-AZ)\]
-
-        SECRETS\[Secrets Manager\<br\>(DB Creds, JWT Key)\]
-
-    end
-
-    W \--\> CF
-
-    M \--\> ALB
-
-    CF \--\> S3
-
-    CF \--\> ALB
-
-    ALB \--\> ECS
-
-    ECS \--\> RDS
-
-    ECS \--\> SECRETS
-
-✅ **FRD Alignment**: Meets **NFR-SEC-01** (HTTPS via CloudFront/ALB), **NFR-SCALE-01** (ECS auto-scaling), **NFR-SCALE-02** (RDS Multi-AZ \= 99.95% SLA).
-
-### **9.4.2 Key Services**
-
-- **Compute**: AWS ECS / Azure Container Apps / Kubernetes  
-- **Database**: Managed PostgreSQL (AWS RDS, Azure DB) with automated backups  
-- **Storage**: S3 (Web assets), EFS (optional for file exports)  
-- **Secrets**: AWS Secrets Manager / HashiCorp Vault  
-- **DNS & TLS**: Route 53 \+ ACM (auto-renewing certs)
-
----
-
-## **9.5 Configuration Management**
-
-### **9.5.1 Environment-Specific Config**
-
-Managed via **Quarkus configuration profiles**:
-
-\# application.properties
-
-quarkus.http.port=8080
-
-\# Database
-
-%prod.quarkus.datasource.db-kind=postgresql
-
-%prod.quarkus.datasource.jdbc.url=${DB\_URL}
-
-%prod.quarkus.datasource.username=${DB\_USER}
-
-%prod.quarkus.datasource.password=${DB\_PASS}
-
-%dev.quarkus.datasource.db-kind=sqlite
-
-%dev.quarkus.datasource.jdbc.url=jdbc:sqlite:./timetracker.db
-
-- **Secrets**: Injected via environment variables from Secrets Manager  
-- **No hardcoded credentials** in source control
-
-### **9.5.2 Feature Flags (Future)**
-
-- Use **LaunchDarkly** or **ConfigMap** to toggle features (e.g., “Allow Parallel Timers”)
-
----
-
-## **9.6 Monitoring & Observability**
-
-### **9.6.1 Health Checks**
-
-- **Liveness**: `/q/health/live` → Is app running?  
-- **Readiness**: `/q/health/ready` → Is DB connected?  
-- Used by orchestrator (K8s/ECS) for restart decisions
-
-### **9.6.2 Logging**
-
-- **Structured JSON logs** from Quarkus  
-- **Fields**: `timestamp`, `level`, `logger`, `message`, `user_id`, `request_id`  
-- **Aggregation**: Sent to CloudWatch / Datadog / Loki
-
-### **9.6.3 Metrics**
-
-- **Quarkus Micrometer** → Prometheus endpoint (`/q/metrics`)  
-- **Key Metrics**:  
-  - `http.server.requests` (latency, error rate)  
-  - `db.connections.active`  
-  - `jvm.memory.used`
-
-### **9.6.4 Alerting**
-
-- **Triggers**:  
-  - Error rate \> 1%  
-  - Latency (p95) \> 500ms  
-  - CPU \> 80% for 5 min  
-- **Channels**: Slack, Email, PagerDuty
-
----
-
-## **9.7 Backup & Disaster Recovery**
-
-### **9.7.1 Data Backup**
-
-- **Database**: Daily snapshots \+ transaction log backups (Point-in-Time Recovery)  
-- **Retention**: 30 days (aligns with **DATA-RET-03**)  
-- **Encryption**: At rest (AES-256)
-
-### **9.7.2 Recovery Objectives**
-
-- **RPO (Recovery Point Objective)**: ≤ 5 minutes (minimal data loss)  
-- **RTO (Recovery Time Objective)**: ≤ 30 minutes (full restore)
-
-### **9.7.3 Account Deletion Compliance**
-
-- **Hard delete** (`DELETE FROM users WHERE id = X`) is immediate  
-- **Backups are not purged** (for legal/disaster recovery), but access is restricted
-
----
-
-## **9.8 Security & Compliance Operations**
-
-- **Patch Management**: OS and dependency updates via CI pipeline  
-- **Audit Logs**: All admin actions (user ban/delete) logged with `user_id` and `timestamp`  
-- **GDPR Requests**:  
-  - **Data Export**: Automated via `GET /users/me/export`  
-  - **Account Deletion**: Idempotent API endpoint with confirmation token
-
----
-
-## **9.9 Mobile App Distribution**
-
-- **iOS**: Published via App Store Connect (Capacitor build → Xcode archive)  
-- **Android**: Published via Google Play Console (Capacitor → Android Studio → .aab)  
-- **Backend URL**: Configured at build time (staging vs production)
-
-⚠️ **Note**: Mobile apps **must** use the same production API as the Web client to ensure consistency.
-
----
-
-This deployment and operations strategy ensures the Cloud Time Tracker is **reliable**, **secure**, and **maintainable**, while meeting all non-functional requirements for availability, scalability, and compliance.
-
-Absolutely\! Below is **Chapter 10: Risks & Open Issues** of your **Technical Architecture and Design Document (TADD)**, aligned with your FRD, technical constraints (**Quarkus**, **React+Vite**, **multi-database**, **shared codebase**), and industry best practices for risk management in software delivery.
-
-This chapter identifies key technical, operational, and architectural risks—along with concrete mitigation strategies—to ensure a successful MVP launch and sustainable evolution.
-
----
-
-# **Chapter 10: Risks & Open Issues**
-
-## **10.1 Overview**
-
-This chapter documents known **technical risks**, **design trade-offs**, and **open decisions** that could impact the delivery, stability, or scalability of the Cloud Time Tracker system. Each risk includes:
-
-- **Description**  
-- **Impact** (High/Medium/Low)  
-- **Likelihood** (High/Medium/Low)  
-- **Mitigation Strategy**  
-- **Owner** (e.g., Backend Team, DevOps)
-
-The goal is to proactively address uncertainties while maintaining agility for MVP delivery.
-
----
-
-## **10.2 Technical Risks**
-
-### **RISK-01: SQLite vs PostgreSQL SQL Dialect Incompatibility**
-
-- **Description**: Despite Hibernate ORM abstraction, subtle differences in SQL syntax (e.g., `RETURNING`, `JSON` functions, auto-increment) may cause runtime errors.  
-- **Impact**: High (breaks offline mobile or cloud deployment)  
-- **Likelihood**: Medium  
-- **Mitigation**:  
-  - Use **Hibernate Panache** with minimal native queries.  
-  - Write **integration tests** for both databases using Quarkus `@QuarkusTest` profiles.  
-  - Avoid PostgreSQL-specific features in MVP (e.g., JSONB indexing).  
-- **Owner**: Backend Team
-
----
-
-### **RISK-02: Real-Time Sync Latency & Conflicts**
-
-- **Description**: Polling-based sync (MVP) may lead to user-perceived delays or conflicts when editing the same record on two devices simultaneously.  
-- **Impact**: Medium (degraded UX)  
-- **Likelihood**: Medium  
-- **Mitigation**:  
-  - Implement **“Last Write Wins”** with clear UI feedback (“This record was updated elsewhere”).  
-  - Add **client-generated UUIDs** for idempotency.  
-  - Plan **WebSocket upgrade** post-MVP for true real-time sync.  
-- **Owner**: Frontend \+ Backend Teams
-
----
-
-### **RISK-03: Mobile Background Execution Limits**
-
-- **Description**: iOS/Android restrict background app execution (\~30s), preventing long-running timers from syncing automatically.  
-- **Impact**: High (timer stops unexpectedly)  
-- **Likelihood**: High  
-- **Mitigation**:  
-  - **Server-side timer persistence**: When user starts a timer, backend records `start_time`. If app disconnects, elapsed time is computed on next sync.  
-  - Educate users: “Keep the app open for accurate tracking.”  
-  - Future: Explore **background geolocation** or **silent push** (platform-dependent).  
-- **Owner**: Mobile Team
-
----
-
-### **RISK-04: Shared Codebase Bloat or Platform Drift**
-
-- **Description**: Over time, platform-specific logic may leak into shared code, reducing maintainability.  
-- **Impact**: Medium (increased bug surface, slower iteration)  
-- **Likelihood**: Medium  
-- **Mitigation**:  
-  - Enforce **strict directory structure** (`/shared`, `/platforms/web`, `/platforms/mobile`).  
-  - Use **linting rules** (e.g., ESLint plugin) to block platform imports in shared code.  
-  - Conduct **architecture reviews** during PRs.  
-- **Owner**: Frontend Lead
-
----
-
-### **RISK-05: Performance at Scale (10k+ Records)**
-
-- **Description**: Unoptimized queries on large `time_record` tables may degrade API performance.  
-- **Impact**: Medium (violates **NFR-PERF-01**)  
-- **Likelihood**: Low (MVP user base small)  
-- **Mitigation**:  
-  - Enforce **pagination** (`size=20`) on all list endpoints.  
-  - Add **composite indexes** on `(user_id, start_timestamp)`.  
-  - Monitor query plans via PostgreSQL `EXPLAIN ANALYZE`.  
-- **Owner**: Backend Team
-
----
-
-## **10.3 Open Architectural Decisions**
-
-| Decision | Options | Recommendation | Rationale |
-| :---- | :---- | :---- | :---- |
-| **Mobile Runtime** | React Native vs Capacitor | ✅ **Capacitor** | Reuses 100% of Vite output; simpler than RN bridge |
-| **State Management** | Redux vs Zustand vs Jotai | ✅ **Zustand** | Minimal boilerplate; no context re-renders |
-| **Sync Protocol** | Polling vs WebSocket vs SSE | ✅ **Polling (MVP)** → **WebSocket (v2)** | Simpler for MVP; WebSockets add infra complexity |
-| **Native Notifications** | Firebase vs Local-only | ✅ **Local-only (MVP)** | Avoids FCM/APNs setup; sufficient for timer alerts |
-| **CI/CD Platform** | GitHub Actions vs GitLab CI | ✅ **GitHub Actions** | Native integration with repo; free for public projects |
-
-⚠️ **Note**: All decisions are **reversible**; abstractions (e.g., notification service interface) allow future swaps.
-
----
-
-## **10.4 Compliance & Operational Risks**
-
-### **RISK-06: GDPR Data Deletion Completeness**
-
-- **Description**: Hard-delete cascade might miss data in logs, caches, or backups.  
-- **Impact**: High (legal/regulatory)  
-- **Likelihood**: Low  
-- **Mitigation**:  
-  - **No PII in logs**: Mask `user_id` as hash.  
-  - **Backup policy**: Retain backups but restrict access; document retention period.  
-  - **Audit trail**: Log deletion requests separately (immutable store).  
-- **Owner**: Security Officer
-
----
-
-### **RISK-07: Dependency Vulnerabilities**
-
-- **Description**: Transitive dependencies (e.g., Axios, Quarkus extensions) may introduce CVEs.  
-- **Impact**: Medium  
-- **Likelihood**: Medium  
-- **Mitigation**:  
-  - Run **Snyk/Dependabot** in CI pipeline.  
-  - Pin dependency versions in `package-lock.json` and `pom.xml`.  
-  - Monthly **dependency audit**.  
-- **Owner**: DevOps
-
----
-
-## **10.5 Risk Monitoring Plan**
-
-- **Risk Register**: Maintained in project wiki; reviewed biweekly.  
-- **Triggers for Re-evaluation**:  
-  - User reports sync issues  
-  - Performance degradation in production  
-  - New security advisory affecting stack  
-- **Escalation Path**: Tech Lead → CTO for High-impact risks
-
----
-
-## **10.6 Summary**
-
-| Risk Category | High | Medium | Low |
-| :---- | :---- | :---- | :---- |
-| **Data & Sync** | 1 | 2 | 0 |
-| **Platform** | 1 | 1 | 0 |
-| **Performance** | 0 | 2 | 1 |
-| **Compliance** | 1 | 0 | 0 |
-
-All high-impact risks have active mitigations. The architecture remains **evolutionary**—designed to adapt as usage patterns emerge post-MVP.
-
----
-
-This concludes the **Technical Architecture and Design Document**.
-
-✅ You now have a complete, traceable, and constraint-compliant blueprint for building the **Cloud Time Tracker** with:
-
-- A **shared React+Vite codebase** for Web and Mobile  
-- A **Quarkus (Java) backend** supporting **SQLite and PostgreSQL**  
-- Full alignment with your **Functional Requirements Document**
+```
+This sequence demonstrates how the system guarantees **durability**, **eventual consistency**, and **cross-device awareness**—all while maintaining a responsive, offline-capable user experience.  
