@@ -319,8 +319,7 @@ The Container Diagram zooms into the "Time Tracker System" to show the deployabl
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffffff', 'edgeLabelBackground':'#F5F5F5', 'clusterBkg': '#FAFAFA'}}}%%
 graph TB
-    title Container Diagram
-
+   
     subgraph "Client Layer"
         subgraph "Web Container (Browser)"
             WebClient["Single Page App\n[React + Vite]"]
