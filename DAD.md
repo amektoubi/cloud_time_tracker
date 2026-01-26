@@ -1,123 +1,79 @@
 # Design and Architecture Document: Time Tracker System
 
-## 1\. Introduction
+## Table of Contents
 
-### 1.1 Purpose of This Document
-
-### 1.2 Scope
-
-### 1.3 Definitions, Acronyms, and Abbreviations
-
-### 1.4 References
-
-### 1.5 Document Conventions
-
-## 2\. Architectural Goals, Constraints, and Technology Stack
-
-### 2.1 Quality Attribute Scenarios
-
-### 2.2 Key Design Principles
-
-### 2.3 Technical and Operational Constraints
-
-### 2.4 Selected Technology Stack
-
-## 3\. High-Level Architecture Overview
-
-### 3.1 Architectural Style(s) Used
-
-### 3.2 Context Diagram
-
-### 3.3 Container Diagram
-
-## 4\. Component Architecture
-
-### 4.1 Client Layer
-
-### 4.2 Application Server
-
-### 4.3 Data Layer
-
-### 4.4 Component Diagram
-
-## 5\. Data Architecture
-
-### 5.1 Conceptual Data Model
-
-### 5.2 Logical Data Schema
-
-### 5.3 UUID-Based Identity Strategy
-
-### 5.4 Soft Delete & Tombstone Propagation
-
-### 5.5 Local vs. Server Data Partitioning
-
-## 6\. Synchronization Design
-
-### 6.1 Sync Engine Workflow
-
-### 6.2 Conflict Detection & Resolution Logic
-
-### 6.3 Sync Queue Structure
-
-### 6.4 Sequence Diagram
-
-## 7\. Security Architecture
-
-### 7.1 Authentication Flow
-
-### 7.2 Secure Token Storage
-
-### 7.3 Data Isolation
-
-### 7.4 Password Hashing
-
-### 7.5 Threat Model Summary
-
-## 8\. Deployment Architecture
-
-### 8.1 Self-Hosting Topology
-
-### 8.2 Docker Compose Setup
-
-### 8.3 Environment Support Matrix
-
-### 8.4 Health & Monitoring Endpoints
-
-### 8.5 Deployment Diagram
-
-## 9\. Cross-Cutting Concerns
-
-### 9.1 Error Handling & Logging
-
-### 9.2 Internationalization
-
-### 9.3 Accessibility
-
-### 9.4 Performance Optimizations
-
-## 10\. Quality Assurance and Software Verification
-
-### 10.1 Testing Strategy
-
-### 10.2 Test Environments
-
-### 10.3 Key Test Scenarios
-
-### 10.4 Performance & Load Validation
-
-### 10.5 Security Verification
-
-### 10.6 Compliance & Auditability
-
-### 10.7 Monitoring & Observability
-
-## 11\. Open Issues and Future Considerations
-
-### 11.1 Known Ambiguities
-
-### 11.2 Potential Extensions
-
+*   [1. Introduction](#1-introduction)
+    *   [1.1 Purpose of This Document](#11-purpose-of-this-document)
+    *   [1.2 Scope](#12-scope)
+    *   [1.3 Definitions, Acronyms, and Abbreviations](#13-definitions-acronyms-and-abbreviations)
+    *   [1.4 References](#14-references)
+    *   [1.5 Document Conventions](#15-document-conventions)
+*   [2. Architectural Goals, Constraints, and Technology Stack](#2-architectural-goals-constraints-and-technology-stack)
+    *   [2.1 Quality Attribute Scenarios (Architectural Drivers)](#21-quality-attribute-scenarios-architectural-drivers)
+    *   [2.2 Key Design Principles](#22-key-design-principles)
+    *   [2.3 Technical and Operational Constraints](#23-technical-and-operational-constraints)
+    *   [2.4 Selected Technology Stack](#24-selected-technology-stack)
+*   [3. High-Level Architecture Overview](#3-high-level-architecture-overview)
+    *   [3.1 Architectural Style](#31-architectural-style)
+    *   [3.2 Context Diagram (System Landscape)](#32-context-diagram-system-landscape)
+    *   [3.3 Container Diagram (Runtime Units)](#33-container-diagram-runtime-units)
+*   [4. Component Architecture](#4-component-architecture)
+    *   [4.1 Client Layer (Unified Frontend)](#41-client-layer-unified-frontend)
+    *   [4.2 Application Server (Backend)](#42-application-server-backend)
+    *   [4.3 Component Interaction Diagram](#43-component-interaction-diagram)
+    *   [4.4 Data Layer Architecture](#44-data-layer-architecture)
+*   [5. Data Architecture](#5-data-architecture)
+    *   [5.1 Conceptual Data Model](#51-conceptual-data-model)
+    *   [5.2 Logical Data Schema](#52-logical-data-schema)
+    *   [5.3 UUID Strategy & Identity Generation](#53-uuid-strategy--identity-generation)
+    *   [5.4 Data Partitioning & 7-Day Cache Strategy](#54-data-partitioning--7-day-cache-strategy)
+    *   [5.5 Soft Delete & Tombstones](#55-soft-delete--tombstones)
+    *   [5.6 Multi-Tenancy & Isolation](#56-multi-tenancy--isolation)
+*   [6. Synchronization Design](#6-synchronization-design)
+    *   [6.1 Sync Architecture Pattern](#61-sync-architecture-pattern)
+    *   [6.2 Data Exchange Protocol](#62-data-exchange-protocol)
+    *   [6.3 Conflict Detection & Resolution](#63-conflict-detection--resolution)
+    *   [6.4 Sync Queue Structure (Client SQLite)](#64-sync-queue-structure-client-sqlite)
+    *   [6.5 Sequence Diagram: Full Sync Cycle](#65-sequence-diagram-full-sync-cycle)
+    *   [6.6 Optimistic UI & Local Feedback](#66-optimistic-ui--local-feedback)
+*   [7. Security Architecture](#7-security-architecture)
+    *   [7.1 Authentication & Session Management](#71-authentication--session-management)
+    *   [7.2 Identity Management](#72-identity-management)
+    *   [7.3 Data Isolation & Authorization (RBAC)](#73-data-isolation--authorization-rbac)
+    *   [7.4 Input Validation & Sanitization](#74-input-validation--sanitization)
+    *   [7.5 Threat Model Summary](#75-threat-model-summary)
+    *   [7.6 Secrets Management](#76-secrets-management)
+*   [8. Deployment Architecture](#8-deployment-architecture)
+    *   [8.1 Deployment Topologies](#81-deployment-topologies)
+    *   [8.2 Container Strategy](#82-container-strategy)
+    *   [8.3 Environment Support Matrix](#83-environment-support-matrix)
+    *   [8.4 Health & Monitoring (Coroot Integration)](#84-health--monitoring-coroot-integration)
+    *   [8.5 Deployment Diagram](#85-deployment-diagram)
+    *   [8.6 Update & Rollback Strategy](#86-update--rollback-strategy)
+*   [9. Cross-Cutting Concerns](#9-cross-cutting-concerns)
+    *   [9.1 Error Handling & Logging Strategy](#91-error-handling--logging-strategy)
+    *   [9.2 Internationalization (i18n) & Timezones](#92-internationalization-i18n--timezones)
+    *   [9.3 Accessibility (a11y)](#93-accessibility-a11y)
+    *   [9.4 Performance Optimizations](#94-performance-optimizations)
+    *   [9.5 Backup & Disaster Recovery](#95-backup--disaster-recovery)
+    *   [9.6 Security Headers & CORS](#96-security-headers--cors)
+*   [10. Quality Assurance and Software Verification](#10-quality-assurance-and-software-verification)
+    *   [10.1 Testing Strategy: The "Diamond" Model](#101-testing-strategy-the-diamond-model)
+    *   [10.2 Test Environments & Methodology](#102-test-environments--methodology)
+    *   [10.3 CI/CD Pipelines (GitHub Actions)](#103-cicd-pipelines-github-actions)
+    *   [10.4 Key Test Scenarios](#104-key-test-scenarios)
+    *   [10.5 Security Verification](#105-security-verification)
+    *   [10.6 Performance & Load Validation](#106-performance--load-validation)
+    *   [10.7 Compliance & Auditability](#107-compliance--auditability)
+*   [11. Developer Experience (DevEx) & Contribution](#11-developer-experience-devex--contribution)
+    *   [11.1 Repository Structure (Nx Monorepo)](#111-repository-structure-nx-monorepo)
+    *   [11.2 Environment Provisioning](#112-environment-provisioning)
+    *   [11.3 AI-Augmented Development Guidelines](#113-ai-augmented-development-guidelines)
+    *   [11.4 Local Development Workflow](#114-local-development-workflow)
+*   [12. Open Issues and Future Considerations](#12-open-issues-and-future-considerations)
+    *   [12.1 Known Limitations & Architectural Risks](#121-known-limitations--architectural-risks)
+    *   [12.2 Potential Extensions (Roadmap)](#122-potential-extensions-roadmap)
+    *   [12.3 Technical Debt Acknowledgement](#123-technical-debt-acknowledgement)
 ---
 
 # 1. Introduction
