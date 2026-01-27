@@ -1,4 +1,4 @@
-package ma;
+package ma.time.traker.api.domain;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;

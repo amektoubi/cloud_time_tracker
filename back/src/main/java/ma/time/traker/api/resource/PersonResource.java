@@ -1,4 +1,4 @@
-package ma;
+package ma.time.traker.api.resource;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -6,6 +6,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
+import ma.time.traker.api.domain.Person;
+import ma.time.traker.api.repository.PersonRepository;
 
 @Path("/persons")
 @Produces(MediaType.APPLICATION_JSON)
