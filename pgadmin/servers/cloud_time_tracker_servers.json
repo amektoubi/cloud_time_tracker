@@ -1,0 +1,15 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "Cloud Time Tracker",
+            "Group": "Servers",
+            "Host": "postgres",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "postgres",
+            "Password": "postgres",
+            "SSLMode": "prefer",
+            "Comment": "Cloud Time Tracker PostgreSQL Database"
+        }
+    }
+}
