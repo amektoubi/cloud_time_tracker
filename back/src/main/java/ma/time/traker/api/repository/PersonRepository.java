@@ -1,7 +1,6 @@
 package ma.time.traker.api.repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,5 +34,20 @@ public class PersonRepository implements PanacheRepositoryBase<Person, Long> {
       return true;
     }
     return false;
+  }
+
+  @Transactional
+  public Person update(Long id, Person personUpdates) {
+    Person existingPerson = getEntityManager().find(Person.class, id);
+    if (existingPerson == null) {
+      return null;
+    }
+    
+    existingPerson.name = personUpdates.name;
+    existingPerson.age = personUpdates.age;
+    existingPerson.updatedAt = LocalDateTime.now();
+    
+    getEntityManager().merge(existingPerson);
+    return existingPerson;
   }
 }
