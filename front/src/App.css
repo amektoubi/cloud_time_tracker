@@ -1,42 +1,89 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* App-specific responsive styles */
+
+.App {
+  background-color: #ffffff;
+  min-height: 100vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Navbar responsive adjustments */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.navbar-brand {
+  font-weight: 600;
+  font-size: 1.25rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
+/* Card components */
 .card {
-  padding: 2em;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  border-radius: 8px;
 }
 
-.read-the-docs {
-  color: #888;
+/* Form responsive adjustments */
+@media (max-width: 576px) {
+  .form-control, .form-select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .input-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .input-group > .form-control {
+    width: 100%;
+  }
+}
+
+/* Table responsive improvements */
+.table th,
+.table td {
+  vertical-align: middle;
+  padding: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .table thead th {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+/* Button responsive adjustments */
+.btn-group-sm > .btn,
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Modal responsive */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .modal-content {
+    border-radius: 8px;
+  }
+}
+
+/* Loading states */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Alert responsive */
+.alert {
+  border-radius: 8px;
+  margin-bottom: 1rem;
 }

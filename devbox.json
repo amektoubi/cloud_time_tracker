@@ -2,7 +2,11 @@
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
     "nodejs@25.4.0",
-    "javaPackages.compiler.openjdk21@21.0.9+10"
+    "javaPackages.compiler.openjdk21@21.0.9+10",
+    "direnv@2.37.1",
+    "opencode@1.1.30",
+    "claude-code@latest",
+    "playwright@1.57.0"
   ],
   "shell": {
     "init_hook": [
