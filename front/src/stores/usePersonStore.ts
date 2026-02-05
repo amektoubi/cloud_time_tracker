@@ -15,10 +15,10 @@ interface PersonState {
 
 interface PersonActions {
   fetchPersons: () => Promise<void>;
-  fetchPersonById: (id: number) => Promise<void>;
+  fetchPersonById: (id: string) => Promise<void>;
   createPerson: (data: IPersonCreate) => Promise<IPersonResponse>;
-  updatePerson: (id: number, data: IPersonUpdate) => Promise<IPersonResponse>;
-  deletePerson: (id: number) => Promise<void>;
+  updatePerson: (id: string, data: IPersonUpdate) => Promise<IPersonResponse>;
+  deletePerson: (id: string) => Promise<void>;
   fetchStatistics: () => Promise<void>;
   searchPersons: (namePattern: string) => Promise<void>;
   getPersonsByMinimumAge: (minAge: number) => Promise<void>;
@@ -56,7 +56,7 @@ export const usePersonStore = create<PersonStore>()(
         }
       },
 
-      fetchPersonById: async (id: number) => {
+      fetchPersonById: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
           const person = await personApi.getPersonById(id);
@@ -97,7 +97,7 @@ export const usePersonStore = create<PersonStore>()(
         }
       },
 
-      updatePerson: async (id: number, data: IPersonUpdate): Promise<IPersonResponse> => {
+      updatePerson: async (id: string, data: IPersonUpdate): Promise<IPersonResponse> => {
         set({ isLoading: true, error: null });
         try {
           const updatedPerson = await personApi.updatePerson(id, data);
@@ -124,7 +124,7 @@ export const usePersonStore = create<PersonStore>()(
         }
       },
 
-      deletePerson: async (id: number) => {
+      deletePerson: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
           await personApi.deletePerson(id);

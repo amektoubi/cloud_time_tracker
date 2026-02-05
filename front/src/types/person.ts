@@ -9,7 +9,7 @@ export interface IPersonUpdate {
 }
 
 export interface IPersonResponse {
-  readonly id: number;
+  readonly id: string; // Changed from number to string (UUID)
   readonly name: string;
   readonly age: number;
   readonly createdAt: string;

@@ -1,10 +1,10 @@
 package ma.time.traker.api.service;
 
 import java.util.List;
+import java.util.UUID;
 
-import ma.time.traker.api.service.dto.PersonCreateDTO;
-import ma.time.traker.api.service.dto.PersonResponseDTO;
-import ma.time.traker.api.service.dto.PersonUpdateDTO;
+import ma.time.traker.api.dto.PersonDTO;
+import ma.time.traker.api.dto.PersonResponseDTO;
 import ma.time.traker.exception.PersonBusinessException;
 import ma.time.traker.exception.PersonNotFoundException;
 
@@ -24,7 +24,7 @@ public interface PersonService {
    * @return Person response DTO
    * @throws PersonNotFoundException if person not found
    */
-  PersonResponseDTO getPersonById(Long id) throws PersonNotFoundException;
+  PersonResponseDTO getPersonById(UUID id) throws PersonNotFoundException;
 
   /**
    * Create a new person
@@ -33,7 +33,7 @@ public interface PersonService {
    * @return Created person response
    * @throws PersonBusinessException if business rules violated
    */
-  PersonResponseDTO createPerson(PersonCreateDTO createDTO) throws PersonBusinessException;
+  PersonResponseDTO createPerson(PersonDTO createDTO) throws PersonBusinessException;
 
   /**
    * Update an existing person
@@ -44,7 +44,7 @@ public interface PersonService {
    * @throws PersonNotFoundException if person not found
    * @throws PersonBusinessException if business rules violated
    */
-  PersonResponseDTO updatePerson(Long id, PersonUpdateDTO updateDTO)
+  PersonResponseDTO updatePerson(UUID id, PersonDTO updateDTO)
       throws PersonNotFoundException, PersonBusinessException;
 
   /**
@@ -53,7 +53,7 @@ public interface PersonService {
    * @param id Person ID
    * @throws PersonNotFoundException if person not found
    */
-  void deletePerson(Long id) throws PersonNotFoundException;
+  void deletePerson(UUID id) throws PersonNotFoundException;
 
   /**
    * Check if person exists by name
@@ -95,4 +95,6 @@ public interface PersonService {
       int minAge,
       int maxAge) {
   }
+
+
 }

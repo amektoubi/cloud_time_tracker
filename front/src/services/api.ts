@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { IPersonCreate, IPersonUpdate, IPersonResponse, IPersonStatistics } from '../types/person';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -46,16 +46,16 @@ export const personApi = {
   getAllPersons: (): Promise<IPersonResponse[]> =>
     api.get('/persons').then(response => response.data).catch(handleApiError),
 
-  getPersonById: (id: number): Promise<IPersonResponse> =>
+  getPersonById: (id: string): Promise<IPersonResponse> =>
     api.get(`/persons/${id}`).then(response => response.data).catch(handleApiError),
 
   createPerson: (data: IPersonCreate): Promise<IPersonResponse> =>
     api.post('/persons', data).then(response => response.data).catch(handleApiError),
 
-  updatePerson: (id: number, data: IPersonUpdate): Promise<IPersonResponse> =>
+  updatePerson: (id: string, data: IPersonUpdate): Promise<IPersonResponse> =>
     api.put(`/persons/${id}`, data).then(response => response.data).catch(handleApiError),
 
-  deletePerson: (id: number): Promise<void> =>
+  deletePerson: (id: string): Promise<void> =>
     api.delete(`/persons/${id}`).then(() => undefined).catch(handleApiError),
 
   getPersonStatistics: (): Promise<IPersonStatistics> =>

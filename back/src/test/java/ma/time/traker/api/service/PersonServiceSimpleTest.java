@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,9 +25,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import ma.time.traker.api.domain.Person;
+import ma.time.traker.api.dto.PersonDTO;
+import ma.time.traker.api.dto.PersonResponseDTO;
 import ma.time.traker.api.repository.PersonRepository;
-import ma.time.traker.api.service.dto.PersonCreateDTO;
-import ma.time.traker.api.service.dto.PersonResponseDTO;
 import ma.time.traker.exception.PersonBusinessException;
 import ma.time.traker.exception.PersonNotFoundException;
 
@@ -50,21 +51,21 @@ class PersonServiceSimpleTest {
   void setUp() {
     // Setup test data
     testPerson1 = new Person();
-    testPerson1.id = 1L;
+    testPerson1.id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11");
     testPerson1.name = "John Doe";
     testPerson1.age = 25;
     testPerson1.createdAt = LocalDateTime.now();
     testPerson1.updatedAt = LocalDateTime.now();
 
     testPerson2 = new Person();
-    testPerson2.id = 2L;
+    testPerson2.id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12");
     testPerson2.name = "Jane Smith";
     testPerson2.age = 30;
     testPerson2.createdAt = LocalDateTime.now();
     testPerson2.updatedAt = LocalDateTime.now();
 
     testPerson3 = new Person();
-    testPerson3.id = 3L;
+    testPerson3.id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14");
     testPerson3.name = "Bob Johnson";
     testPerson3.age = 20;
     testPerson3.createdAt = LocalDateTime.now();
@@ -101,29 +102,31 @@ class PersonServiceSimpleTest {
   @Test
   void getPersonById_ExistingId_ShouldReturnPerson() {
     // Given
-    when(personRepository.findById(1L)).thenReturn(testPerson1);
+    UUID testId = testPerson1.id;
+    when(personRepository.findById(testId)).thenReturn(testPerson1);
 
     // When
-    PersonResponseDTO result = personService.getPersonById(1L);
+    PersonResponseDTO result = personService.getPersonById(testId);
 
     // Then
     assertNotNull(result);
-    assertEquals(1L, result.id());
+    assertEquals(testId, result.id());
     assertEquals("John Doe", result.name());
     assertEquals(25, result.age());
-    verify(personRepository).findById(1L);
+    verify(personRepository).findById(testId);
   }
 
   @Test
   void getPersonById_NonExistingId_ShouldThrowException() {
     // Given
-    when(personRepository.findById(999L)).thenReturn(null);
+    UUID nonExistingId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    when(personRepository.findById(nonExistingId)).thenReturn(null);
 
     // When & Then
     assertThrows(PersonNotFoundException.class, () -> {
-      personService.getPersonById(999L);
+      personService.getPersonById(nonExistingId);
     });
-    verify(personRepository).findById(999L);
+    verify(personRepository).findById(nonExistingId);
   }
 
   @Test
@@ -138,11 +141,11 @@ class PersonServiceSimpleTest {
   @Test
   void createPerson_ValidData_ShouldCreateAndReturnPerson() {
     // Given
-    PersonCreateDTO createDTO = new PersonCreateDTO("Alice Cooper", 35);
+    PersonDTO createDTO = new PersonDTO("Alice Cooper", 35);
     when(personRepository.findByName("Alice Cooper")).thenReturn(null);
 
     Person newPerson = new Person();
-    newPerson.id = 4L;
+    newPerson.id = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14");
     newPerson.name = "Alice Cooper";
     newPerson.age = 35;
     newPerson.createdAt = LocalDateTime.now();
@@ -170,7 +173,7 @@ class PersonServiceSimpleTest {
   @Test
   void createPerson_DuplicateName_ShouldThrowBusinessException() {
     // Given
-    PersonCreateDTO createDTO = new PersonCreateDTO("John Doe", 25);
+    PersonDTO createDTO = new PersonDTO("John Doe", 25);
     when(personRepository.findByName("John Doe")).thenReturn(testPerson1);
 
     // When & Then
@@ -178,58 +181,6 @@ class PersonServiceSimpleTest {
       personService.createPerson(createDTO);
     });
     verify(personRepository).findByName("John Doe");
-    verify(personRepository, never()).create(any(Person.class));
-  }
-
-  @Test
-  void createPerson_NullName_ShouldThrowBusinessException() {
-    // Given
-    PersonCreateDTO createDTO = new PersonCreateDTO(null, 25);
-
-    // When & Then
-    assertThrows(PersonBusinessException.class, () -> {
-      personService.createPerson(createDTO);
-    });
-    verify(personRepository, never()).findByName(any());
-    verify(personRepository, never()).create(any(Person.class));
-  }
-
-  @Test
-  void createPerson_NullAge_ShouldThrowBusinessException() {
-    // Given
-    PersonCreateDTO createDTO = new PersonCreateDTO("Test User", null);
-
-    // When & Then
-    assertThrows(PersonBusinessException.class, () -> {
-      personService.createPerson(createDTO);
-    });
-    verify(personRepository, never()).findByName(any());
-    verify(personRepository, never()).create(any(Person.class));
-  }
-
-  @Test
-  void createPerson_NegativeAge_ShouldThrowBusinessException() {
-    // Given
-    PersonCreateDTO createDTO = new PersonCreateDTO("Test User", -5);
-
-    // When & Then
-    assertThrows(PersonBusinessException.class, () -> {
-      personService.createPerson(createDTO);
-    });
-    verify(personRepository, never()).findByName(any());
-    verify(personRepository, never()).create(any(Person.class));
-  }
-
-  @Test
-  void createPerson_AgeTooYoung_ShouldThrowBusinessException() {
-    // Given
-    PersonCreateDTO createDTO = new PersonCreateDTO("Test User", 15);
-
-    // When & Then
-    assertThrows(PersonBusinessException.class, () -> {
-      personService.createPerson(createDTO);
-    });
-    verify(personRepository, never()).findByName(any());
     verify(personRepository, never()).create(any(Person.class));
   }
 

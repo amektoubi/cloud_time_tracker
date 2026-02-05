@@ -14,6 +14,8 @@ public class PostgreSQLTestProfile implements QuarkusTestProfile {
         "quarkus.datasource.jdbc.max-size", "16",
         "quarkus.flyway.migrate-at-start", "true",
         "quarkus.flyway.locations", "db/test_data/postgresql",
+        "quarkus.hibernate-orm.unsupported-properties.\"hibernate.type.preferred_uuid_jdbc_type\"", "UUID",
+        "quarkus.hibernate-orm.log.sql", "false",
         "quarkus.log.category.\"org.flywaydb\".level", "DEBUG");
   }
 }

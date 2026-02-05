@@ -17,7 +17,7 @@ const PersonDetails: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      fetchPersonById(parseInt(id));
+      fetchPersonById(id);
     }
   }, [id, fetchPersonById]);
 

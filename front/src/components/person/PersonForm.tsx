@@ -34,7 +34,7 @@ const PersonForm: React.FC = () => {
 
   useEffect(() => {
     if (isEditMode && id) {
-      fetchPersonById(parseInt(id));
+      fetchPersonById(id);
     }
   }, [isEditMode, id, fetchPersonById]);
 
@@ -48,7 +48,7 @@ const PersonForm: React.FC = () => {
   const onSubmit = async (data: IPersonFormData) => {
     try {
       if (isEditMode && id) {
-        await updatePerson(parseInt(id), {
+        await updatePerson(id, {
           name: data.name,
           age: data.age,
         });

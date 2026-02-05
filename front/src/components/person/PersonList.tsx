@@ -22,7 +22,7 @@ const PersonList: React.FC = () => {
 
   // Modal state for delete confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [personToDelete, setPersonToDelete] = useState<{id: number, name: string} | null>(null);
+  const [personToDelete, setPersonToDelete] = useState<{id: string, name: string} | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -63,7 +63,7 @@ const PersonList: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: number, name: string) => {
+  const handleDelete = (id: string, name: string) => {
     setPersonToDelete({ id, name });
     setShowDeleteModal(true);
   };

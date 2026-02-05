@@ -1,7 +1,9 @@
 package ma.time.traker.exception;
 
+import java.util.UUID;
+
 public class PersonNotFoundException extends RuntimeException {
-  public PersonNotFoundException(Long id) {
+  public PersonNotFoundException(UUID id) {
     super("Person with id " + id + " not found");
   }
 

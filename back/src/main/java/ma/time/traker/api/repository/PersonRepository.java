@@ -1,6 +1,7 @@
 package ma.time.traker.api.repository;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -8,11 +9,7 @@ import jakarta.transaction.Transactional;
 import ma.time.traker.api.domain.Person;
 
 @ApplicationScoped
-public class PersonRepository implements PanacheRepositoryBase<Person, Long> {
-
-  public Person findById(Long id) {
-    return getEntityManager().find(Person.class, id);
-  }
+public class PersonRepository implements PanacheRepositoryBase<Person, UUID> {
 
   public Person findByName(String name) {
     return find("name", name).firstResult();
@@ -27,7 +24,7 @@ public class PersonRepository implements PanacheRepositoryBase<Person, Long> {
   }
 
   @Transactional
-  public boolean delete(Long id) {
+  public boolean delete(UUID id) {
     Person person = getEntityManager().find(Person.class, id);
     if (person != null) {
       getEntityManager().remove(person);
@@ -37,16 +34,16 @@ public class PersonRepository implements PanacheRepositoryBase<Person, Long> {
   }
 
   @Transactional
-  public Person update(Long id, Person personUpdates) {
+  public Person update(UUID id, Person personUpdates) {
     Person existingPerson = getEntityManager().find(Person.class, id);
     if (existingPerson == null) {
       return null;
     }
-    
+
     existingPerson.name = personUpdates.name;
     existingPerson.age = personUpdates.age;
     existingPerson.updatedAt = LocalDateTime.now();
-    
+
     getEntityManager().merge(existingPerson);
     return existingPerson;
   }
