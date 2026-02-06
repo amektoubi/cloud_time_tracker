@@ -1,93 +1,99 @@
-# Functional Requirements Document: Structure Overview
-
-# Table of Contents
-
-*   [Chapter 1: Introduction](#chapter-1-introduction)
-    *   [1.1 Purpose](#11-purpose)
-    *   [1.2 Scope](#12-scope)
-    *   [1.3 Definitions, Acronyms, and Abbreviations](#13-definitions-acronyms-and-abbreviations)
-    *   [1.4 References](#14-references)
-    *   [1.5 Overview of Document](#15-overview-of-document)
-*   [Chapter 2: Executive Summary](#chapter-2-executive-summary)
-    *   [2.1 Vision](#21-vision)
-    *   [2.2 Key Business Objectives](#22-key-business-objectives)
-        *   [2.2.1 Operational Continuity (Offline Mode)](#221-operational-continuity-offline-mode)
-        *   [2.2.2 Centralization and Synchronization](#222-centralization-and-synchronization)
-        *   [2.2.3 Identity and Security](#223-identity-and-security)
-        *   [2.2.4 Deployment Flexibility](#224-deployment-flexibility)
-        *   [2.2.5 Administrative Control](#225-administrative-control)
-    *   [2.3 Target Audience](#23-target-audience)
-    *   [2.4 Assumptions and Dependencies](#24-assumptions-and-dependencies)
-*   [Chapter 3: System Architecture and Actors](#chapter-3-system-architecture-and-actors)
-    *   [3.1 High-Level System Architecture](#31-high-level-system-architecture)
-        *   [3.1.1 The Client Layer (Unified Frontend)](#311-the-client-layer-unified-frontend)
-        *   [3.1.2 The Application Server (Backend)](#312-the-application-server-backend)
-        *   [3.1.3 The Data Layer (Persistence)](#313-the-data-layer-persistence)
-    *   [3.2 System Actors (User Roles)](#32-system-actors-user-roles)
-        *   [3.2.1 Guest](#321-guest)
-        *   [3.2.2 Standard User](#322-standard-user)
-        *   [3.2.3 System Administrator (Instance Owner)](#323-system-administrator-instance-owner)
-        *   [3.2.4 System (Internal Actor)](#324-system-internal-actor)
-    *   [3.3 Permissions Matrix (High-Level)](#33-permissions-matrix-high-level)
-*   [Chapter 4: Module 1 — Identity and Access Management (IAM)](#chapter-4-module-1--identity-and-access-management-iam)
-    *   [4.1 Overview](#41-overview)
-    *   [4.2 User Registration](#42-user-registration)
-    *   [4.3 Authentication (Login)](#43-authentication-login)
-    *   [4.4 Password Management](#44-password-management)
-    *   [4.5 Role Management (RBAC) & Bootstrapping](#45-role-management-rbac--bootstrapping)
-    *   [4.6 Account Management & Deletion](#46-account-management--deletion)
-    *   [4.7 Security Configuration (Password Policy)](#47-security-configuration-password-policy)
-    *   [4.8 Session Management](#48-session-management)
-*   [Chapter 5: Module 2 — Taxonomy and Configuration](#chapter-5-module-2--taxonomy-and-configuration)
-    *   [5.1 Overview](#51-overview)
-    *   [5.2 Category Management](#52-category-management)
-    *   [5.3 Tag Management](#53-tag-management)
-    *   [5.4 Goals and Limits](#54-goals-and-limits)
-    *   [5.5 Automation Rules (Smart Categorization)](#55-automation-rules-smart-categorization)
-    *   [5.6 Data Validation and Constraints](#56-data-validation-and-constraints)
-*   [Chapter 6: Module 3 — Time Tracking Core](#chapter-6-module-3--time-tracking-core)
-    *   [6.1 Overview](#61-overview)
-    *   [6.2 Real-Time Tracking (Running Timers)](#62-real-time-tracking-running-timers)
-    *   [6.3 Manual Data Entry](#63-manual-data-entry)
-    *   [6.4 Record Management (CRUD)](#64-record-management-crud)
-    *   [6.5 Data Export (CSV)](#65-data-export-csv)
-    *   [6.6 Synchronization and Conflict Resolution](#66-synchronization-and-conflict-resolution)
-*   [Chapter 7: Module 4 — Analytics and Visualization](#chapter-7-module-4--analytics-and-visualization)
-    *   [7.1 Overview](#71-overview)
-    *   [7.2 The Dashboard](#72-the-dashboard)
-    *   [7.3 Statistical Charts (Server-Driven)](#73-statistical-charts-server-driven)
-    *   [7.4 Data Filtering & Saved Views](#74-data-filtering--saved-views)
-    *   [7.5 Timeline View (Local & Offline)](#75-timeline-view-local--offline)
-    *   [7.6 Reporting Logic](#76-reporting-logic)
-*   [Chapter 8: Module 5 — Application Settings and Synchronization](#chapter-8-module-5--application-settings-and-synchronization)
-    *   [8.1 Overview](#81-overview)
-    *   [8.2 Application Interface Settings](#82-application-interface-settings)
-    *   [8.3 Notification Settings](#83-notification-settings)
-    *   [8.4 Synchronization Logic (The Sync Engine)](#84-synchronization-logic-the-sync-engine)
-    *   [8.5 Data Maintenance & Privacy](#85-data-maintenance--privacy)
-    *   [8.6 Admin / Self-Hosted Configuration (Web Only)](#86-admin--self-hosted-configuration-web-only)
-*   [Chapter 9: Non-Functional Requirements (NFR)](#chapter-9-non-functional-requirements-nfr)
-    *   [9.1 Overview](#91-overview)
-    *   [9.2 Security Requirements](#92-security-requirements)
-    *   [9.3 Performance Requirements](#93-performance-requirements)
-    *   [9.4 Scalability and Hosting](#94-scalability-and-hosting)
-    *   [9.5 Reliability and Availability](#95-reliability-and-availability)
-    *   [9.6 Usability and Accessibility](#96-usability-and-accessibility)
-    *   [9.7 Compliance](#97-compliance)
-    *   [9.8 Operations and Monitoring](#98-operations-and-monitoring)
-*   [Chapter 10: Data Requirements](#chapter-10-data-requirements)
-    *   [10.1 Overview](#101-overview)
-    *   [10.2 Data Entities (Conceptual Schema)](#102-data-entities-conceptual-schema)
-        *   [10.2.1 User](#1021-user)
-        *   [10.2.2 Category](#1022-category)
-        *   [10.2.3 Tag](#1023-tag)
-        *   [10.2.4 Time Record](#1024-time-record)
-        *   [10.2.5 Sync Queue (Client-Side Only)](#1025-sync-queue-client-side-only)
-    *   [10.3 Data Integrity and Synchronization Rules](#103-data-integrity-and-synchronization-rules)
-    *   [10.4 Data Retention and Archiving](#104-data-retention-and-archiving)
-    *   [10.5 API Interface Standards](#105-api-interface-standards)
+# Functional Requirements Document
 
 ---
+<details>
+
+<summary>Table of Contents</summary>
+
+* [Chapter 1: Introduction](#chapter-1-introduction)
+  * [1.1 Purpose](#11-purpose)
+  * [1.2 Scope](#12-scope)
+  * [1.3 Definitions, Acronyms, and Abbreviations](#13-definitions-acronyms-and-abbreviations)
+  * [1.4 References](#14-references)
+  * [1.5 Overview of Document](#15-overview-of-document)
+* [Chapter 2: Executive Summary](#chapter-2-executive-summary)
+  * [2.1 Vision](#21-vision)
+  * [2.2 Key Business Objectives](#22-key-business-objectives)
+    * [2.2.1 Operational Continuity (Offline Mode)](#221-operational-continuity-offline-mode)
+    * [2.2.2 Centralization and Synchronization](#222-centralization-and-synchronization)
+    * [2.2.3 Identity and Security](#223-identity-and-security)
+    * [2.2.4 Deployment Flexibility](#224-deployment-flexibility)
+    * [2.2.5 Administrative Control](#225-administrative-control)
+  * [2.3 Target Audience](#23-target-audience)
+  * [2.4 Assumptions and Dependencies](#24-assumptions-and-dependencies)
+* [Chapter 3: System Architecture and Actors](#chapter-3-system-architecture-and-actors)
+  * [3.1 High-Level System Architecture](#31-high-level-system-architecture)
+    * [3.1.1 The Client Layer (Unified Frontend)](#311-the-client-layer-unified-frontend)
+    * [3.1.2 The Application Server (Backend)](#312-the-application-server-backend)
+    * [3.1.3 The Data Layer (Persistence)](#313-the-data-layer-persistence)
+  * [3.2 System Actors (User Roles)](#32-system-actors-user-roles)
+    * [3.2.1 Guest](#321-guest)
+    * [3.2.2 Standard User](#322-standard-user)
+    * [3.2.3 System Administrator (Instance Owner)](#323-system-administrator-instance-owner)
+    * [3.2.4 System (Internal Actor)](#324-system-internal-actor)
+  * [3.3 Permissions Matrix (High-Level)](#33-permissions-matrix-high-level)
+* [Chapter 4: Module 1 — Identity and Access Management (IAM)](#chapter-4-module-1--identity-and-access-management-iam)
+  * [4.1 Overview](#41-overview)
+  * [4.2 User Registration](#42-user-registration)
+  * [4.3 Authentication (Login)](#43-authentication-login)
+  * [4.4 Password Management](#44-password-management)
+  * [4.5 Role Management (RBAC) & Bootstrapping](#45-role-management-rbac--bootstrapping)
+  * [4.6 Account Management & Deletion](#46-account-management--deletion)
+  * [4.7 Security Configuration (Password Policy)](#47-security-configuration-password-policy)
+  * [4.8 Session Management](#48-session-management)
+* [Chapter 5: Module 2 — Taxonomy and Configuration](#chapter-5-module-2--taxonomy-and-configuration)
+  * [5.1 Overview](#51-overview)
+  * [5.2 Category Management](#52-category-management)
+  * [5.3 Tag Management](#53-tag-management)
+  * [5.4 Goals and Limits](#54-goals-and-limits)
+  * [5.5 Automation Rules (Smart Categorization)](#55-automation-rules-smart-categorization)
+  * [5.6 Data Validation and Constraints](#56-data-validation-and-constraints)
+* [Chapter 6: Module 3 — Time Tracking Core](#chapter-6-module-3--time-tracking-core)
+  * [6.1 Overview](#61-overview)
+  * [6.2 Real-Time Tracking (Running Timers)](#62-real-time-tracking-running-timers)
+  * [6.3 Manual Data Entry](#63-manual-data-entry)
+  * [6.4 Record Management (CRUD)](#64-record-management-crud)
+  * [6.5 Data Export (CSV)](#65-data-export-csv)
+  * [6.6 Synchronization and Conflict Resolution](#66-synchronization-and-conflict-resolution)
+* [Chapter 7: Module 4 — Analytics and Visualization](#chapter-7-module-4--analytics-and-visualization)
+  * [7.1 Overview](#71-overview)
+  * [7.2 The Dashboard](#72-the-dashboard)
+  * [7.3 Statistical Charts (Server-Driven)](#73-statistical-charts-server-driven)
+  * [7.4 Data Filtering & Saved Views](#74-data-filtering--saved-views)
+  * [7.5 Timeline View (Local & Offline)](#75-timeline-view-local--offline)
+  * [7.6 Reporting Logic](#76-reporting-logic)
+* [Chapter 8: Module 5 — Application Settings and Synchronization](#chapter-8-module-5--application-settings-and-synchronization)
+  * [8.1 Overview](#81-overview)
+  * [8.2 Application Interface Settings](#82-application-interface-settings)
+  * [8.3 Notification Settings](#83-notification-settings)
+  * [8.4 Synchronization Logic (The Sync Engine)](#84-synchronization-logic-the-sync-engine)
+  * [8.5 Data Maintenance & Privacy](#85-data-maintenance--privacy)
+  * [8.6 Admin / Self-Hosted Configuration (Web Only)](#86-admin--self-hosted-configuration-web-only)
+* [Chapter 9: Non-Functional Requirements (NFR)](#chapter-9-non-functional-requirements-nfr)
+  * [9.1 Overview](#91-overview)
+  * [9.2 Security Requirements](#92-security-requirements)
+  * [9.3 Performance Requirements](#93-performance-requirements)
+  * [9.4 Scalability and Hosting](#94-scalability-and-hosting)
+  * [9.5 Reliability and Availability](#95-reliability-and-availability)
+  * [9.6 Usability and Accessibility](#96-usability-and-accessibility)
+  * [9.7 Compliance](#97-compliance)
+  * [9.8 Operations and Monitoring](#98-operations-and-monitoring)
+* [Chapter 10: Data Requirements](#chapter-10-data-requirements)
+  * [10.1 Overview](#101-overview)
+  * [10.2 Data Entities (Conceptual Schema)](#102-data-entities-conceptual-schema)
+    * [10.2.1 User](#1021-user)
+    * [10.2.2 Category](#1022-category)
+    * [10.2.3 Tag](#1023-tag)
+    * [10.2.4 Time Record](#1024-time-record)
+    * [10.2.5 Sync Queue (Client-Side Only)](#1025-sync-queue-client-side-only)
+  * [10.3 Data Integrity and Synchronization Rules](#103-data-integrity-and-synchronization-rules)
+  * [10.4 Data Retention and Archiving](#104-data-retention-and-archiving)
+  * [10.5 API Interface Standards](#105-api-interface-standards)
+
+</details>
+
+---
+
 # Chapter 1: Introduction
 
 ## 1.1 Purpose
@@ -150,7 +156,6 @@ The remainder of this document is organized as follows:
 * **Chapter 9** specifies non-functional requirements, including specific constraints on sync latency and data integrity.  
 * **Chapter 10** outlines data requirements and API constraints.
 
-   
 ---
 
 # Chapter 2: Executive Summary
@@ -203,7 +208,6 @@ The system is designed to serve distinct user groups with specific needs:
 * **Synchronization Latency:** It is assumed that data consistency is "Eventual." While local updates are instant, reflection of that data on other devices depends on network availability and sync frequency.  
 * **Reference Parity:** It is assumed that the visual logic (colors, icons, chart behaviors) will strictly follow the "Simple Time Tracker" design patterns unless technical constraints of the web platform or synchronization logic dictate otherwise.
 
-   
 ---
 
 # Chapter 3: System Architecture and Actors
@@ -293,7 +297,6 @@ Automated processes running on the server.
 | Ban/Delete Users | ❌ | ❌ | ✅ (**Web Only**) |
 | Change Global Settings | ❌ | ❌ | ✅ (**Web Only**) |
 
-   
 ---
 
 # Chapter 4: Module 1 — Identity and Access Management (IAM)
@@ -381,11 +384,11 @@ This module defines the requirements for user identification, authentication, an
 * **FR-IAM-06.1 (Token Strategy):**  
   * **Access Token:** Short lifespan (e.g., 15-60 minutes). Used to authorize API requests.  
   * **Refresh Token:** Long lifespan (e.g., 30 days). Used to acquire new Access Tokens silently.  
-*   
+*
 * **FR-IAM-06.2 (Secure Storage):** Tokens must be stored using platform-best practices to prevent extraction:  
   * **Web Client:** HttpOnly / Secure Cookies (preferred) or LocalStorage.  
   * **Mobile Client:** Encrypted KeyStore (Android) or Keychain (iOS).  
-*   
+*
 * **FR-IAM-06.3 (Refresh Mechanism):** The client shall automatically attempt to refresh the session when the Access Token expires. If the Refresh Token is invalid or expired (and the device is online), the user is redirected to the Login screen.  
 * **FR-IAM-06.4 (Security Invalidation):** If a user changes their password, the system must invalidate all existing Refresh Tokens associated with that user account. This forces all other active sessions (e.g., on other devices) to re-authenticate upon their next server contact.
 
@@ -738,7 +741,6 @@ This chapter defines the quality attributes, performance constraints, and high-l
 * **NFR-OPS-03 (Health Supervision):** The system must expose dedicated "Health Check" endpoints (e.g., Liveness and Readiness probes) to allow monitoring tools to verify that the API and Database connections are active and responsive.  
 * **NFR-OPS-04 (Log Privacy):** The logging system must automatically redact sensitive information (e.g., Passwords, Auth Tokens, PII) before writing to the logs to ensure that administrative review of logs does not compromise user security.
 
-   
 ---
 
 # Chapter 10: Data Requirements
@@ -825,3 +827,4 @@ A local structure used to track changes made while offline.
   * `error_code`: Machine-readable string (e.g., `AUTH_INVALID_TOKEN`).  
   * `message`: Human-readable description.  
   * `details`: Optional field for validation errors.
+
