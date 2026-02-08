@@ -7,7 +7,7 @@ skills:
   - capacitor-mobile
 permissions:
   read:
-    - "front/**/*"
+    - "apps/client-web/**/*"
     - ".opencode/skills/*" 
     - "documentation/docs/specs/DAD.md" # <--- Read access to the blueprint
     - "documentation/docs/specs/FRD.md" # <--- Read access to the requirements
