@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError, isAxiosError } from 'axios';
 import type { IPersonCreate, IPersonUpdate, IPersonResponse, IPersonStatistics } from '../types/person';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -10,36 +10,70 @@ const api = axios.create({
   },
 });
 
-const handleApiError = (error: any) => {
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    const status = error.response.status;
-    const data = error.response.data;
+// Type definition for API error response
+interface ApiErrorResponse {
+  error?: string;
+  message?: string;
+}
 
-    if (status === 409 && data && data.error) {
+// Type definition for custom API error
+interface ApiError extends Error {
+  status?: number;
+  code?: string;
+}
+
+const handleApiError = (error: unknown): never => {
+  // Handle Axios errors
+  if (isAxiosError<ApiErrorResponse>(error)) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const status = axiosError.response?.status;
+    const data = axiosError.response?.data;
+
+    if (status === 409 && data?.error) {
       // Handle 409 Conflict with specific business error message
-      throw new Error(data.error);
-    } else if (status === 404 && data && data.error) {
+      const apiError: ApiError = new Error(data.error);
+      apiError.status = status;
+      apiError.code = 'CONFLICT';
+      throw apiError;
+    } else if (status === 404 && data?.error) {
       // Handle 404 Not Found with specific error message
-      throw new Error(data.error);
-    } else if (status === 400 && data && data.error) {
+      const apiError: ApiError = new Error(data.error);
+      apiError.status = status;
+      apiError.code = 'NOT_FOUND';
+      throw apiError;
+    } else if (status === 400 && data?.error) {
       // Handle 400 Bad Request with validation error message
-      throw new Error(data.error);
-    } else if (status >= 400 && status < 500) {
+      const apiError: ApiError = new Error(data.error);
+      apiError.status = status;
+      apiError.code = 'BAD_REQUEST';
+      throw apiError;
+    } else if (status && status >= 400 && status < 500) {
       // Generic client error
-      throw new Error(data?.error || `Client error: ${status}`);
-    } else if (status >= 500) {
+      const message = data?.error || data?.message || `Client error: ${status}`;
+      const apiError: ApiError = new Error(message);
+      apiError.status = status;
+      apiError.code = 'CLIENT_ERROR';
+      throw apiError;
+    } else if (status && status >= 500) {
       // Server error
-      throw new Error('Server error occurred. Please try again later.');
+      const apiError: ApiError = new Error('Server error occurred. Please try again later.');
+      apiError.status = status;
+      apiError.code = 'SERVER_ERROR';
+      throw apiError;
     }
-  } else if (error.request) {
-    // The request was made but no response was received
-    throw new Error('Network error: Unable to connect to server');
-  } else {
-    // Something happened in setting up the request that triggered an Error
-    throw new Error(error.message || 'An unexpected error occurred');
   }
+
+  // Handle non-Axios errors
+  if (error instanceof Error) {
+    const apiError: ApiError = new Error(error.message);
+    apiError.code = 'UNKNOWN_ERROR';
+    throw apiError;
+  }
+
+  // Handle unknown errors
+  const apiError: ApiError = new Error('An unexpected error occurred');
+  apiError.code = 'UNKNOWN_ERROR';
+  throw apiError;
 };
 
 export const personApi = {

@@ -1,51 +1,51 @@
 {
   "lockfile_version": "1",
   "packages": {
-    "claude-code@latest": {
-      "last_modified": "2026-01-24T06:57:54Z",
-      "resolved": "github:NixOS/nixpkgs/523257564973361cc3e55e3df3e77e68c20b0b80#claude-code",
+    "claude-code@2.1.20": {
+      "last_modified": "2026-01-30T02:32:49Z",
+      "resolved": "github:NixOS/nixpkgs/6308c3b21396534d8aaeac46179c14c439a89b8a#claude-code",
       "source": "devbox-search",
-      "version": "2.1.17",
+      "version": "2.1.20",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/ja29rnrffaskcw8r4v7vzj42jflbsf2j-claude-code-2.1.17",
+              "path": "/nix/store/i8fhrh0i9p0m6qsb6k15dh1zhwabxmnv-claude-code-2.1.20",
               "default": true
             }
           ],
-          "store_path": "/nix/store/ja29rnrffaskcw8r4v7vzj42jflbsf2j-claude-code-2.1.17"
+          "store_path": "/nix/store/i8fhrh0i9p0m6qsb6k15dh1zhwabxmnv-claude-code-2.1.20"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/yr03xryc0ziqx95aaych1712ih62fr89-claude-code-2.1.17",
+              "path": "/nix/store/bxqvnq3f011qpxrwlkyh71kjd2yzk9jh-claude-code-2.1.20",
               "default": true
             }
           ],
-          "store_path": "/nix/store/yr03xryc0ziqx95aaych1712ih62fr89-claude-code-2.1.17"
+          "store_path": "/nix/store/bxqvnq3f011qpxrwlkyh71kjd2yzk9jh-claude-code-2.1.20"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/ngrwv1f1wxwqa0186q6ig1lbcxmrrb47-claude-code-2.1.17",
+              "path": "/nix/store/zbqs373i0gk6jp8h2ipbxvspgldrm8jp-claude-code-2.1.20",
               "default": true
             }
           ],
-          "store_path": "/nix/store/ngrwv1f1wxwqa0186q6ig1lbcxmrrb47-claude-code-2.1.17"
+          "store_path": "/nix/store/zbqs373i0gk6jp8h2ipbxvspgldrm8jp-claude-code-2.1.20"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/qprabbp9hn62mi6vg3winvg95yjjz151-claude-code-2.1.17",
+              "path": "/nix/store/is1rjmk15vsb5fkh0ay5g6qkxl9bxwxr-claude-code-2.1.20",
               "default": true
             }
           ],
-          "store_path": "/nix/store/qprabbp9hn62mi6vg3winvg95yjjz151-claude-code-2.1.17"
+          "store_path": "/nix/store/is1rjmk15vsb5fkh0ay5g6qkxl9bxwxr-claude-code-2.1.20"
         }
       }
     },

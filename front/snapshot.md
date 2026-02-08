@@ -1,0 +1,29 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link " Cloud Time Tracker" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: 
+        - text: Cloud Time Tracker
+      - button "Toggle navigation" [ref=e8] [cursor=pointer]
+      - text:  
+  - generic [ref=e12]:
+    - heading " Something went wrong" [level=4] [ref=e14]:
+      - generic [ref=e15]: 
+      - text: Something went wrong
+    - generic [ref=e16]:
+      - generic [ref=e18]: 
+      - generic [ref=e19]: An unexpected error occurred
+      - paragraph [ref=e20]: We apologize for the inconvenience. Please try again or reload the page.
+      - paragraph [ref=e21]:
+        - strong [ref=e22]: "Error:"
+        - text: Cannot read properties of null (reading 'useState')
+        - strong [ref=e23]: "Stack:"
+        - generic [ref=e24]: "TypeError: Cannot read properties of null (reading 'useState') at exports.useState (http://localhost:5173/node_modules/.vite/deps/react-focus-lock.js?v=e54ab4f0:960:35) at FocusLockUI (http://localhost:5173/node_modules/.vite/deps/react-focus-lock.js?v=e54ab4f0:2067:46) at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:18509:20) at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:5654:24) at updateForwardRef (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:7198:21) at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:8735:20) at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:997:72) at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:12561:98) at workLoopSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:12424:43) at renderRootSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=f4f22f33:12408:13)"
+      - generic [ref=e25]:
+        - button " Reload Page" [ref=e26] [cursor=pointer]:
+          - generic [ref=e27]: 
+          - text: Reload Page
+        - button " Go to Home" [ref=e28] [cursor=pointer]:
+          - generic [ref=e29]: 
+          - text: Go to Home

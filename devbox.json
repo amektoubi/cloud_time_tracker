@@ -5,8 +5,8 @@
     "javaPackages.compiler.openjdk21@21.0.9+10",
     "direnv@2.37.1",
     "opencode@1.1.30",
-    "claude-code@latest",
-    "playwright@1.57.0"
+    "playwright@1.57.0",
+    "claude-code@2.1.20"
   ],
   "shell": {
     "init_hook": [

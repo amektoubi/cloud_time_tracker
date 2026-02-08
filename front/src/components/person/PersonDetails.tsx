@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Card, Button, Badge, Alert, Spinner } from 'react-bootstrap';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePersonStore } from '../../stores/usePersonStore';
+import { formatDateTime } from '../../utils/date';
 
 const PersonDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,10 +27,6 @@ const PersonDetails: React.FC = () => {
       await deletePerson(selectedPerson.id);
       navigate('/persons');
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
   };
 
   if (error) {
@@ -86,10 +83,10 @@ const PersonDetails: React.FC = () => {
             <div className="col-md-6">
               <dl className="row">
                 <dt className="col-sm-6">Created At:</dt>
-                <dd className="col-sm-6">{formatDate(selectedPerson.createdAt)}</dd>
+                <dd className="col-sm-6">{formatDateTime(selectedPerson.createdAt)}</dd>
                 
                 <dt className="col-sm-6">Updated At:</dt>
-                <dd className="col-sm-6">{formatDate(selectedPerson.updatedAt)}</dd>
+                <dd className="col-sm-6">{formatDateTime(selectedPerson.updatedAt)}</dd>
               </dl>
             </div>
           </div>

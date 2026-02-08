@@ -1,0 +1,77 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link " Cloud Time Tracker" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: 
+        - text: Cloud Time Tracker
+      - button "Toggle navigation" [ref=e8] [cursor=pointer]
+      - text:  
+  - generic [ref=e11]:
+    - generic [ref=e12]:
+      - heading "Persons" [level=2] [ref=e13]
+      - link " Add New Person" [ref=e14] [cursor=pointer]:
+        - /url: /persons/new
+        - button " Add New Person" [ref=e15]:
+          - generic [ref=e16]: 
+          - text: Add New Person
+    - generic [ref=e17]:
+      - generic [ref=e20]:
+        - generic [ref=e22]: 
+        - textbox "Search by name..." [ref=e23]
+        - button "Search" [ref=e24] [cursor=pointer]
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: 
+            - text: "Min Age:"
+          - spinbutton [ref=e31]
+        - button " Clear" [disabled]:
+          - generic: 
+          - text: Clear
+    - table [ref=e34]:
+      - rowgroup [ref=e35]:
+        - row "ID Name Age Created At Actions" [ref=e36]:
+          - columnheader "ID" [ref=e37]
+          - columnheader "Name" [ref=e38]
+          - columnheader "Age" [ref=e39]
+          - columnheader "Created At" [ref=e40]
+          - columnheader "Actions" [ref=e41]
+      - rowgroup [ref=e42]:
+        - row "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 John Doe  30 Feb 5, 2026 Edit Delete" [ref=e43]:
+          - cell "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" [ref=e44]
+          - cell "John Doe" [ref=e45]:
+            - link "John Doe" [ref=e46] [cursor=pointer]:
+              - /url: /persons/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+          - cell " 30" [ref=e47]:
+            - generic [ref=e48]:
+              - generic [ref=e49]: 
+              - text: "30"
+          - cell "Feb 5, 2026" [ref=e50]
+          - cell "Edit Delete" [ref=e51]:
+            - generic [ref=e52]:
+              - link "Edit" [ref=e53] [cursor=pointer]:
+                - /url: /persons/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/edit
+                - button "Edit" [ref=e54]:  Edit
+              - button "Delete" [ref=e55] [cursor=pointer]:  Delete
+        - row "b5f3c922-11b2-4d22-8c11-92f750d56567 Jane Smith  25 Feb 5, 2026 Edit Delete" [ref=e56]:
+          - cell "b5f3c922-11b2-4d22-8c11-92f750d56567" [ref=e57]
+          - cell "Jane Smith" [ref=e58]:
+            - link "Jane Smith" [ref=e59] [cursor=pointer]:
+              - /url: /persons/b5f3c922-11b2-4d22-8c11-92f750d56567
+          - cell " 25" [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]: 
+              - text: "25"
+          - cell "Feb 5, 2026" [ref=e63]
+          - cell "Edit Delete" [ref=e64]:
+            - generic [ref=e65]:
+              - link "Edit" [ref=e66] [cursor=pointer]:
+                - /url: /persons/b5f3c922-11b2-4d22-8c11-92f750d56567/edit
+                - button "Edit" [ref=e67]:  Edit
+              - button "Delete" [ref=e68] [cursor=pointer]:  Delete
+    - link " View Statistics" [ref=e70] [cursor=pointer]:
+      - /url: /statistics
+      - button " View Statistics" [ref=e71]:
+        - generic [ref=e72]: 
+        - text: View Statistics

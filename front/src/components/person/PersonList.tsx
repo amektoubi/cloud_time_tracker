@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Table, Button, Form, InputGroup, Badge, Spinner, Alert, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { usePersonStore } from '../../stores/usePersonStore';
+import { formatDate } from '../../utils/date';
 import type { IPersonResponse } from '../../types/person';
 
 const PersonList: React.FC = () => {
@@ -87,10 +88,6 @@ const PersonList: React.FC = () => {
     setShowDeleteModal(false);
     setPersonToDelete(null);
     setIsDeleting(false);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
   };
 
   if (error) {
@@ -189,8 +186,8 @@ const PersonList: React.FC = () => {
                 <tr key={person.id}>
                   <td className="text-nowrap fw-bold text-primary">{person.id}</td>
                   <td>
-                    <Link 
-                      to={`/persons/${person.id}`} 
+                    <Link
+                      to={`/persons/${person.id}`}
                       className="text-decoration-none fw-medium text-dark"
                     >
                       {person.name}
@@ -241,8 +238,8 @@ const PersonList: React.FC = () => {
           </div>
           <h4 className="text-muted">No persons found</h4>
           <p className="text-muted">
-            {searchTerm || filterMinAge !== null 
-              ? "Try adjusting your search or filter criteria." 
+            {searchTerm || filterMinAge !== null
+              ? "Try adjusting your search or filter criteria."
               : "Get started by adding your first person."
             }
           </p>
@@ -259,19 +256,23 @@ const PersonList: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      <Modal 
-        show={showDeleteModal} 
+      <Modal
+        show={showDeleteModal}
         onHide={cancelDelete}
         centered
         backdrop="static"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-modal-title"
+        aria-describedby="delete-modal-description"
       >
         <Modal.Header closeButton className="border-0">
-          <Modal.Title className="text-danger">
+          <Modal.Title id="delete-modal-title" className="text-danger">
             <i className="bi bi-exclamation-triangle-fill me-2"></i>
             Confirm Deletion
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="py-4">
+        <Modal.Body className="py-4" id="delete-modal-description">
           <div className="text-center">
             <div className="mb-3">
               <i className="bi bi-person-x text-danger" style={{ fontSize: '3rem' }}></i>
@@ -290,8 +291,8 @@ const PersonList: React.FC = () => {
           </div>
         </Modal.Body>
         <Modal.Footer className="border-0 justify-content-center gap-3">
-          <Button 
-            variant="outline-secondary" 
+          <Button
+            variant="outline-secondary"
             onClick={cancelDelete}
             disabled={isDeleting}
             className="px-4"
@@ -299,8 +300,8 @@ const PersonList: React.FC = () => {
             <i className="bi bi-x-circle me-2"></i>
             Cancel
           </Button>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             onClick={confirmDelete}
             disabled={isDeleting}
             className="px-4"
