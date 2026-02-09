@@ -36,6 +36,33 @@ services:
     networks:
       - cloud_time_tracker_network
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloud_time_tracker_app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_KIND: postgresql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: cloud_time_tracker
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      QUARKUS_PROFILE: prod.postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - cloud_time_tracker_network
+
 networks:
   cloud_time_tracker_network:
     driver: bridge

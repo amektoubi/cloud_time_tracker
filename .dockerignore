@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+documentation/
+AGENTS.md
+DAD.md
+FRD.md
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Node modules and build artifacts
+node_modules/
+front/node_modules/
+front/dist/
+front/build/
+
+# Java build artifacts
+back/target/
+back/.mvn/
+
+# Dev environment files
+.devbox/
+.devcontainer/
+devbox.lock
+devbox.json
+.envrc
+
+# Docker compose and database data
+docker-compose.yml
+.env
+postgres_data/
+pgadmin/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# OpenCode context
+.opencode/
+opencode.json
+
+# GitHub workflows (not needed in container)
+.github/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing coverage
+coverage/
+*.coverage
+.nyc_output/
