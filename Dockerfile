@@ -13,6 +13,7 @@ RUN npm ci --only=production
 
 # Copy frontend source and build
 COPY front/ .
+RUN npm install
 RUN npm run build
 
 # Stage 2: Build Quarkus backend with embedded frontend
@@ -38,7 +39,7 @@ RUN apk add --no-cache curl
 
 # Create app user for security
 RUN addgroup -g 1000 appgroup && \
-    adduser -u 1000 -G appgroup -D appuser
+  adduser -u 1000 -G appgroup -D appuser
 
 # Set working directory
 WORKDIR /deployments
@@ -57,7 +58,7 @@ EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+  CMD curl -f http://localhost:8080/health || exit 1
 
 # Set JVM options for optimal performance
 ENV JAVA_OPTS="-Xmx256m -Xms128m -XX:+UseSerialGC"
