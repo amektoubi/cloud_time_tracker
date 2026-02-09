@@ -1,24 +1,22 @@
 import React, { useEffect } from 'react';
 import { Card, Row, Col, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { usePersonStore } from '../../stores/usePersonStore';
+import { useAppDispatch, useAppSelector } from '../../stores/hooks';
+import { fetchStatistics, clearError } from '../../stores/personSlice';
 
 const PersonStatistics: React.FC = () => {
-  const {
-    statistics,
-    isLoading,
-    error,
-    fetchStatistics,
-    clearError,
-  } = usePersonStore();
+  const dispatch = useAppDispatch();
+  const statistics = useAppSelector(state => state.person.statistics);
+  const isLoading = useAppSelector(state => state.person.isLoading);
+  const error = useAppSelector(state => state.person.error);
 
   useEffect(() => {
-    fetchStatistics();
-  }, [fetchStatistics]);
+    dispatch(fetchStatistics());
+  }, [dispatch]);
 
   if (error) {
     return (
-      <Alert variant="danger" dismissible onClose={clearError}>
+      <Alert variant="danger" dismissible onClose={() => dispatch(clearError())}>
         {error}
       </Alert>
     );
@@ -101,7 +99,7 @@ const PersonStatistics: React.FC = () => {
             <Link to="/persons">
               <Button variant="secondary">View All Persons</Button>
             </Link>
-            <Button variant="info" onClick={fetchStatistics}>
+            <Button variant="info" onClick={() => dispatch(fetchStatistics())}>
               Refresh Statistics
             </Button>
           </div>

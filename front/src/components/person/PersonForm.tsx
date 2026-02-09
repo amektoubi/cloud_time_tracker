@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { Form, Button, Card, Alert, Spinner } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usePersonStore } from '../../stores/usePersonStore';
+import { useAppDispatch, useAppSelector } from '../../stores/hooks';
+import { clearError, createPerson, fetchPersonById, updatePerson } from '../../stores/personSlice';
 import type { IPersonFormData } from '../../types/person';
 
 const PersonForm: React.FC = () => {
@@ -10,15 +11,10 @@ const PersonForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = id !== undefined;
 
-  const {
-    selectedPerson,
-    isLoading,
-    error,
-    fetchPersonById,
-    createPerson,
-    updatePerson,
-    clearError,
-  } = usePersonStore();
+  const dispatch = useAppDispatch();
+  const selectedPerson = useAppSelector(state => state.person.selectedPerson);
+  const isLoading = useAppSelector(state => state.person.isLoading);
+  const error = useAppSelector(state => state.person.error);
 
   const {
     register,
@@ -34,9 +30,9 @@ const PersonForm: React.FC = () => {
 
   useEffect(() => {
     if (isEditMode && id) {
-      fetchPersonById(id);
+      dispatch(fetchPersonById(id));
     }
-  }, [isEditMode, id, fetchPersonById]);
+  }, [isEditMode, id, dispatch]);
 
   useEffect(() => {
     if (selectedPerson && isEditMode) {
@@ -48,15 +44,9 @@ const PersonForm: React.FC = () => {
   const onSubmit = async (data: IPersonFormData) => {
     try {
       if (isEditMode && id) {
-        await updatePerson(id, {
-          name: data.name,
-          age: data.age,
-        });
+        dispatch(updatePerson({ id, data: { name: data.name, age: data.age } }));
       } else {
-        await createPerson({
-          name: data.name,
-          age: data.age,
-        });
+        dispatch(createPerson({ name: data.name, age: data.age }));
       }
       navigate('/persons');
     } catch (error) {
@@ -70,7 +60,7 @@ const PersonForm: React.FC = () => {
 
   if (error) {
     return (
-      <Alert variant="danger" dismissible onClose={clearError}>
+      <Alert variant="danger" dismissible onClose={() => dispatch(clearError())}>
         {error}
       </Alert>
     );

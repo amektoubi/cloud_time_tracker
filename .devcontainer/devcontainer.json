@@ -4,6 +4,7 @@
     "dockerfile": "./Dockerfile",
     "context": ".."
   },
+  "postCreateCommand": "devbox shell",
   "customizations": {
     "vscode": {
       "settings": {},
@@ -12,6 +13,9 @@
       ]
     }
   },
-  "forwardPorts": [8080, 5173],
+  "forwardPorts": [
+    8080,
+    5173
+  ],
   "remoteUser": "devbox"
 }
