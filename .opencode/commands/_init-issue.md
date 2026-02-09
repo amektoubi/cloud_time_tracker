@@ -7,7 +7,8 @@ agent: automation-scripter
 
 1. Run `git checkout -b issue-[issue_id]`.
 2. Create directory `.opencode/issues/` if it doesn't exist.
-3. Use the GitHub CLI to fetch issue details: 
+3. Use the GitHub CLI to fetch issue details:
    `gh issue view [issue_id] --json title,body,number > .opencode/issues/issue_[issue_id].md`.
 4. Clean the JSON into a readable Markdown format with sections: # Description, # Plan, # Progress.
 5. Notify the user: "Branch created and issue downloaded. Run 'opencode run plan-issue' to begin."
+6. do not do any planning for the moment
