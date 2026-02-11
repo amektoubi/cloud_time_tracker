@@ -1,37 +1,34 @@
 import React, { useEffect } from 'react';
 import { Card, Button, Badge, Alert, Spinner } from 'react-bootstrap';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { usePersonStore } from '../../stores/usePersonStore';
+import { useAppSelector, useAppDispatch } from '../../stores/hooks';
+import { fetchPersonById, deletePerson, clearError } from '../../stores/personSlice';
 import { formatDateTime } from '../../utils/date';
 
 const PersonDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const {
-    selectedPerson,
-    isLoading,
-    error,
-    fetchPersonById,
-    deletePerson,
-    clearError,
-  } = usePersonStore();
+  const dispatch = useAppDispatch();
+  const selectedPerson = useAppSelector(state => state.person.selectedPerson);
+  const isLoading = useAppSelector(state => state.person.isLoading);
+  const error = useAppSelector(state => state.person.error);
 
   useEffect(() => {
     if (id) {
-      fetchPersonById(id);
+      dispatch(fetchPersonById(id));
     }
-  }, [id, fetchPersonById]);
+  }, [id, dispatch]);
 
   const handleDelete = async () => {
     if (selectedPerson && window.confirm(`Are you sure you want to delete ${selectedPerson.name}?`)) {
-      await deletePerson(selectedPerson.id);
+      await dispatch(deletePerson(selectedPerson.id));
       navigate('/persons');
     }
   };
 
   if (error) {
     return (
-      <Alert variant="danger" dismissible onClose={clearError}>
+      <Alert variant="danger" dismissible onClose={() => dispatch(clearError())}>
         {error}
       </Alert>
     );

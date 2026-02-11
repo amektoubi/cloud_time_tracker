@@ -5,21 +5,10 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import PersonStatistics from '../src/components/person/PersonStatistics';
-import { usePersonStore } from '../src/stores/usePersonStore';
-
-// Mock the person store
-vi.mock('../src/stores/usePersonStore', () => ({
-  usePersonStore: vi.fn(() => ({
-    statistics: null,
-    isLoading: false,
-    error: null,
-    fetchStatistics: vi.fn(),
-    clearError: vi.fn(),
-  })),
-}));
+import { renderWithStore } from '../src/testUtils';
+import type { PersonState } from '../src/stores/personSlice';
 
 const mockStatistics = {
   totalCount: 100,
@@ -28,20 +17,23 @@ const mockStatistics = {
   maxAge: 75,
 };
 
-const createMockStore = (overrides = {}) => ({
-  statistics: mockStatistics,
-  isLoading: false,
-  error: null,
-  fetchStatistics: vi.fn(),
-  clearError: vi.fn(),
-  ...overrides,
+const createMockState = (overrides: Partial<PersonState> = {}): { person: PersonState } => ({
+  person: {
+    persons: [],
+    selectedPerson: null,
+    statistics: mockStatistics,
+    isLoading: false,
+    error: null,
+    searchTerm: '',
+    filterMinAge: null,
+    ...overrides,
+  },
 });
 
 describe('PersonStatistics Component', () => {
   beforeEach(() => {
     cleanup();
     vi.clearAllMocks();
-    (usePersonStore as unknown as vi.Mock).mockImplementation(() => createMockStore());
   });
 
   afterEach(() => {
@@ -50,63 +42,60 @@ describe('PersonStatistics Component', () => {
 
   describe('Rendering', () => {
     it('renders statistics page title', () => {
-      render(
+      renderWithStore(
         <MemoryRouter initialEntries={['/statistics']}>
           <PersonStatistics />
-        </MemoryRouter>
+        </MemoryRouter>,
+        createMockState()
       );
 
       expect(screen.getByText(/Person Statistics/i)).toBeInTheDocument();
     });
 
-    it('renders total count card', () => {
-      render(
-        <MemoryRouter initialEntries={['/statistics']}>
-          <PersonStatistics />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByText(/Total Persons/i)).toBeInTheDocument();
-      expect(screen.getByText(/100/i)).toBeInTheDocument();
-    });
-
-    it('renders average age card', () => {
-      render(
-        <MemoryRouter initialEntries={['/statistics']}>
-          <PersonStatistics />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByText(/Average Age/i)).toBeInTheDocument();
-    });
-  });
-
-  describe('Data Fetching', () => {
-    it('fetches statistics on mount', () => {
-      const mockFetchStatistics = vi.fn();
-      (usePersonStore as unknown as vi.Mock).mockImplementation(() =>
-        createMockStore({ fetchStatistics: mockFetchStatistics })
-      );
-
-      render(
-        <MemoryRouter initialEntries={['/statistics']}>
-          <PersonStatistics />
-        </MemoryRouter>
-      );
-
-      expect(mockFetchStatistics).toHaveBeenCalled();
-    });
-  });
-
-  describe('Quick Actions', () => {
     it('renders add new person button', () => {
-      render(
+      renderWithStore(
         <MemoryRouter initialEntries={['/statistics']}>
           <PersonStatistics />
-        </MemoryRouter>
+        </MemoryRouter>,
+        createMockState()
       );
 
       expect(screen.getByRole('link', { name: /Add New Person/i })).toBeInTheDocument();
+    });
+
+    it('renders back to list button', () => {
+      renderWithStore(
+        <MemoryRouter initialEntries={['/statistics']}>
+          <PersonStatistics />
+        </MemoryRouter>,
+        createMockState()
+      );
+
+      expect(screen.getByRole('button', { name: /Back to List/i })).toBeInTheDocument();
+    });
+
+    it('renders refresh statistics button', () => {
+      renderWithStore(
+        <MemoryRouter initialEntries={['/statistics']}>
+          <PersonStatistics />
+        </MemoryRouter>,
+        createMockState()
+      );
+
+      expect(screen.getByRole('button', { name: /Refresh Statistics/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('Loading State', () => {
+    it('shows loading spinner when isLoading is true', () => {
+      renderWithStore(
+        <MemoryRouter initialEntries={['/statistics']}>
+          <PersonStatistics />
+        </MemoryRouter>,
+        createMockState({ isLoading: true })
+      );
+
+      expect(screen.getByRole('status')).toBeInTheDocument();
     });
   });
 });

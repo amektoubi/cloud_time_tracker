@@ -5,34 +5,22 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import App from '../src/App';
+import { renderWithStore } from '../src/testUtils';
+import type { PersonState } from '../src/stores/personSlice';
 
-// Mock the person store
-vi.mock('../src/stores/usePersonStore', () => ({
-  usePersonStore: vi.fn(() => ({
+const createMockState = (overrides: Partial<PersonState> = {}): { person: PersonState } => ({
+  person: {
     persons: [],
+    selectedPerson: null,
+    statistics: null,
     isLoading: false,
     error: null,
     searchTerm: '',
     filterMinAge: null,
-    selectedPerson: null,
-    statistics: null,
-    fetchPersons: vi.fn(),
-    fetchPersonById: vi.fn(),
-    createPerson: vi.fn(),
-    updatePerson: vi.fn(),
-    deletePerson: vi.fn(),
-    fetchStatistics: vi.fn(),
-    searchPersons: vi.fn(),
-    getPersonsByMinimumAge: vi.fn(),
-    setSelectedPerson: vi.fn(),
-    setSearchTerm: vi.fn(),
-    setFilterMinAge: vi.fn(),
-    clearError: vi.fn(),
-    clearPersons: vi.fn(),
-  })),
-}));
+    ...overrides,
+  },
+});
 
 describe('App Component', () => {
   beforeEach(() => {
@@ -46,21 +34,21 @@ describe('App Component', () => {
 
   describe('Rendering', () => {
     it('renders the app without crashing', () => {
-      render(<App />);
+      renderWithStore(<App />, createMockState());
 
       const appContainer = screen.getByTestId('app-container');
       expect(appContainer).toBeInTheDocument();
     });
 
     it('renders the navbar with correct brand', () => {
-      render(<App />);
+      renderWithStore(<App />, createMockState());
 
       const brandElement = screen.getByText(/Cloud Time Tracker/i);
       expect(brandElement).toBeInTheDocument();
     });
 
     it('renders navigation links', () => {
-      render(<App />);
+      renderWithStore(<App />, createMockState());
 
       const personsLink = screen.getByRole('link', { name: /Persons/i });
       const statisticsLink = screen.getByRole('link', { name: /Statistics/i });
@@ -71,17 +59,17 @@ describe('App Component', () => {
   });
 
   describe('Navigation', () => {
-    it('redirects root path to /persons', () => {
-      render(<App />);
+    it('has persons link with correct href', () => {
+      renderWithStore(<App />, createMockState());
 
       const personsLink = screen.getByRole('link', { name: /Persons/i });
-      expect(personsLink).toBeInTheDocument();
+      expect(personsLink).toHaveAttribute('href', '/persons');
     });
   });
 
   describe('Accessibility', () => {
     it('navbar has correct ARIA attributes', () => {
-      render(<App />);
+      renderWithStore(<App />, createMockState());
 
       const navbar = screen.getByRole('navigation');
       expect(navbar).toBeInTheDocument();

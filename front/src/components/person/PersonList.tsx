@@ -1,25 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Table, Button, Form, InputGroup, Badge, Spinner, Alert, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { usePersonStore } from '../../stores/usePersonStore';
+import { useAppDispatch, useAppSelector } from '../../stores/hooks';
+import {
+  fetchPersons,
+  searchPersons,
+  getPersonsByMinimumAge,
+  setSearchTerm,
+  setFilterMinAge,
+  deletePerson,
+  clearError,
+} from '../../stores/personSlice';
 import { formatDate } from '../../utils/date';
 import type { IPersonResponse } from '../../types/person';
 
 const PersonList: React.FC = () => {
-  const {
-    persons,
-    isLoading,
-    error,
-    searchTerm,
-    filterMinAge,
-    fetchPersons,
-    searchPersons,
-    getPersonsByMinimumAge,
-    setSearchTerm,
-    setFilterMinAge,
-    deletePerson,
-    clearError,
-  } = usePersonStore();
+  const dispatch = useAppDispatch();
+  
+  const persons = useAppSelector(state => state.person.persons);
+  const isLoading = useAppSelector(state => state.person.isLoading);
+  const error = useAppSelector(state => state.person.error);
+  const searchTerm = useAppSelector(state => state.person.searchTerm);
+  const filterMinAge = useAppSelector(state => state.person.filterMinAge);
 
   // Modal state for delete confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -27,8 +29,8 @@ const PersonList: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    fetchPersons();
-  }, [fetchPersons]);
+    dispatch(fetchPersons());
+  }, [dispatch]);
 
   const filteredPersons = useMemo(() => {
     let filtered = persons;
@@ -49,18 +51,18 @@ const PersonList: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      searchPersons(searchTerm.trim());
+      dispatch(searchPersons(searchTerm.trim()));
     } else {
-      fetchPersons();
+      dispatch(fetchPersons());
     }
   };
 
   const handleAgeFilter = (age: number | null) => {
-    setFilterMinAge(age);
+    dispatch(setFilterMinAge(age));
     if (age !== null) {
-      getPersonsByMinimumAge(age);
+      dispatch(getPersonsByMinimumAge(age));
     } else {
-      fetchPersons();
+      dispatch(fetchPersons());
     }
   };
 
@@ -73,7 +75,7 @@ const PersonList: React.FC = () => {
     if (personToDelete) {
       setIsDeleting(true);
       try {
-        await deletePerson(personToDelete.id);
+        await dispatch(deletePerson(personToDelete.id)).unwrap();
         setShowDeleteModal(false);
         setPersonToDelete(null);
       } catch (error) {
@@ -92,7 +94,7 @@ const PersonList: React.FC = () => {
 
   if (error) {
     return (
-      <Alert variant="danger" dismissible onClose={clearError}>
+      <Alert variant="danger" dismissible onClose={() => dispatch(clearError())}>
         {error}
       </Alert>
     );
@@ -121,7 +123,7 @@ const PersonList: React.FC = () => {
                 type="text"
                 placeholder="Search by name..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => dispatch(setSearchTerm(e.target.value))}
               />
               <Button type="submit" variant="outline-secondary">
                 Search

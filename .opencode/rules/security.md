@@ -1,27 +1,57 @@
-# Security & Compliance Rules
+# Security & Compliance Constitution
 
-**Critical**: Violations are treated as blocking defects.
+## 1. Secrets Management (CRITICAL)
+**Goal:** Prevent credential leakage.
 
-## 1. Backend (Java/Quarkus)
-- **Mandatory Isolation**: Every query MUST be scoped by `user_id`. Use Hibernate `@Filter` to enforce this at the session level. Never rely on the client to provide the `user_id`.
-- **Parameterization**: Use HQL/JPQL named parameters. Raw string concatenation in SQL is FORBIDDEN.
-- **Validation**: All DTOs (Records) entering the system MUST use Jakarta Bean Validation (`@Valid`, `@NotBlank`, etc.).
-- **Error Sanitization**: Never expose stack traces to the client. Use `ExceptionMapper` to return generic JSON error responses.
+*   **NO HARDCODED SECRETS:** You **MUST NOT** hardcode API keys, passwords, tokens, or private keys in source code.
+*   **Environment Variables:** All secrets **MUST** be loaded from environment variables (e.g., `process.env`, `System.getenv()`).
+*   **Safe Defaults:** If a variable is missing, the application **MUST** fail fast (crash on startup) rather than defaulting to a insecure value (like "password123").
+*   **Examples:** When adding a new environment variable, you **MUST** update `.env.example` with a dummy value.
 
-## 2. Frontend & Mobile (React/Capacitor)
-- **Auth Token Hygiene**: 
-  - **Web**: Access Tokens in memory; Refresh Tokens in `HttpOnly` Secure cookies. 
-  - **Mobile**: Use `@capacitor/preferences` or Native Secure Storage. **NEVER** use `localStorage` for sensitive tokens.
-- **XSS Prevention**: Avoid `dangerouslySetInnerHTML`. Sanitize all user-generated content before rendering.
-- **Privacy**: Mask PII (Personally Identifiable Information) in logs. Never log passwords or tokens.
+## 2. Injection Prevention (OWASP A03:2021)
+**Goal:** Prevent SQLi, XSS, and Command Injection.
 
-## 3. Infrastructure & API
-- **Secret Management**: ZERO hardcoded secrets. Use environment variables injected via `docker-compose` or `devbox`.
-- **CORS Lockdown**: In production, `Access-Control-Allow-Origin` MUST be restricted to the specific frontend domain. No wildcards (`*`).
-- **Rate Limiting**: Public endpoints (`/login`, `/register`) MUST have rate limiting configured at the Ingress (HAProxy).
+*   **SQL/Database:**
+    *   You **MUST** use Parameterized Queries or the project's ORM (Hibernate/Prisma/TypeORM).
+    *   String concatenation for SQL queries is **STRICTLY FORBIDDEN**.
+*   **Command Execution:**
+    *   Avoid executing shell commands (`exec`, `system`) if possible.
+    *   If unavoidable, you **MUST** validate and sanitize all user inputs against a strict allowlist (Regex) before passing them to the shell.
+*   **Cross-Site Scripting (XSS):**
+    *   **Frontend:** Do not use "dangerous" rendering methods (e.g., `dangerouslySetInnerHTML` in React, `v-html` in Vue) unless explicitly requested and sanitized with a library like DOMPurify.
 
-## ✅ Security Review Checklist
-1. [ ] Is the data query filtered by the authenticated `user_id`?
-2. [ ] Are all inputs validated before being processed?
-3. [ ] Are secrets excluded from the code and commit history?
-4. [ ] Is sensitive data encrypted at rest (Mobile) and in transit (HTTPS)?
+## 3. Broken Access Control (OWASP A01:2021)
+**Goal:** Enforce tenant isolation and authorization.
+
+*   **Tenant Isolation:** Every database query involving user data **MUST** include a filter for the current `user_id` or `tenant_id`.
+    *   *Bad:* `SELECT * FROM orders WHERE id = ?`
+    *   *Good:* `SELECT * FROM orders WHERE id = ? AND user_id = ?`
+*   **Backend Validation:** Never trust the Frontend. Just because a button is hidden doesn't mean the API endpoint is secure. You **MUST** re-verify permissions on every backend request.
+
+## 4. Data Privacy & Logging
+**Goal:** Protect PII (Personally Identifiable Information).
+
+*   **Sanitized Logs:** You **MUST NOT** log sensitive data.
+    *   *Forbidden:* `logger.info("User login attempt", userObject)` (If userObject contains password hash).
+    *   *Required:* `logger.info("User login attempt", { id: user.id, email: user.email })`
+*   **Error Messages:** Production error responses **MUST NOT** reveal stack traces or database internal structures to the client. Return generic error messages (e.g., "An unexpected error occurred").
+
+## 5. Dependency Security
+**Goal:** Prevent Supply Chain Attacks.
+
+*   **No New Packages:** You **MUST NOT** install new dependencies without explicit instruction or user confirmation.
+*   **Lockfiles:** You **MUST** ensure `package-lock.json`, `yarn.lock`, or `pom.xml` are updated consistently.
+
+## 6. Authentication Standards
+**Goal:** Secure identity management.
+
+*   **Passwords:** You **MUST NOT** write custom password hashing logic. Use established libraries (e.g., `bcrypt`, `Argon2`, or the framework's built-in Auth provider).
+*   **Tokens:** JWTs **MUST** be signed with a strong secret and have an expiration time (`exp` claim).
+
+---
+
+## Agent Compliance Checklist
+Before submitting code, ask yourself:
+1.  [ ] Did I remove all hardcoded secrets?
+2.  [ ] Did I use the ORM/Parameters for that query?
+4.  [ ] Did I sanitize the inputs?
