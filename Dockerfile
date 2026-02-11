@@ -4,17 +4,9 @@ FROM node:20-alpine AS frontend-build
 
 WORKDIR /app
 
-# Copy frontend package files
-COPY front/package*.json ./
-COPY front/package-lock.json ./
-
-# Install dependencies
-RUN npm ci --only=production
-
 # Copy frontend source and build
 COPY front/ .
-RUN npm install
-RUN npm run build
+RUN npm install && npm run build
 
 # Stage 2: Build Quarkus backend with embedded frontend
 FROM maven:3.9-eclipse-temurin-21-alpine AS backend-build
@@ -47,11 +39,13 @@ WORKDIR /deployments
 # Copy JAR from build stage
 COPY --from=backend-build --chown=appuser:appgroup /workspace/target/quarkus-app/ ./
 
-# Create a symlink for the JAR file (Quarkus convention)
-RUN ln -s quarkus-app/quarkus-app-runner.jar app.jar
+RUN ln -s quarkus-app/quarkus-run.jar app.jar && chown appuser:appgroup app.jar
+
 
 # Switch to non-root user
 USER appuser
+
+# Create a symlink for the JAR file (Quarkus convention)
 
 # Expose port
 EXPOSE 8080
