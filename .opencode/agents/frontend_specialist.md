@@ -2,9 +2,8 @@
 ---
 description:  Agent Profile: Frontend Specialist
 skills:
-  - component-driven-frontend
-  - offline-first-sync
-  - capacitor-mobile
+  - component-driven-ui
+  - ai-context-governance
 permissions:
   read:
   - "front/**/*"

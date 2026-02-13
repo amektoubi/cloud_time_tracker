@@ -9,8 +9,6 @@ permissions:
   edit:
     - ".github/**/*"
     - "docker/**/*"
-    - "devcontainer/*"
-    - "devbox.json"
     - "AGENTS.md"
 ---
 

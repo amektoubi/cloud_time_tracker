@@ -1,63 +1,72 @@
 ---
-description: Analyzes the issue and collaborates with the user to generate a finalized Technical Plan.
+description: Collaboratively drafts, iterates, or modifies the Technical Plan. Writes to disk ONLY upon explicit user approval.
 agent: orchestrator
 ---
 
-# Command: Plan Issue Strategy
+# Command: Interactive Plan Architect
 
-## 1. Context Loading
+## 1. Context & State Loading
+1.  **Identify Issue:** Run `git branch --show-current` to get `[issue_id]`.
+2.  **Load Rules:** Read `.opencode/project-context.md` (Stack & Standards).
+3.  **Load Issue:** Read `.opencode/issues/issue_[issue_id].md`.
+4.  **Check Existing State:**
+    *   Look for the header `## Technical Plan` in the issue file.
+    *   **IF FOUND:** Announce: "⚠️ An existing plan was found. Do you want to **(M)odify** it, or **(O)verwrite** it entirely?"
+    *   **IF NOT FOUND:** Proceed to "Analysis".
+5.  **Targeted Scan:** Run `ls -R` or `tree -L 3` on relevant source folders defined in `project-context.md` to understand the current codebase state.
 
-1. **Identify Issue:** Run `git branch --show-current` to extract the `[issue_id]` from the branch name (format: `issue-[id]`).
-2. **Read Project Rules:** Read `.opencode/project-context.md` to understand the current Tech Stack, Architecture, and Directory Structure.
-3. **Read Issue Data:** Read the content of `.opencode/issues/issue_[issue_id].md`.
-4. **Scan Environment:** Run `tree -L 2 -I 'node_modules|target|dist|.git'` to understand the current high-level file structure without reading every file.
+## 2. The Planning Loop (Safe Mode)
+**PROTOCOL:** You are in **Consultant Mode**. You hold the "Draft Plan" in your temporary memory.
+**CONSTRAINT:** Do **NOT** write to any file during this loop.
 
-## 2. Analysis & Draft Strategy (Internal Monologue)
+**Step A: Analysis & Drafting**
+*   Based on the Issue Description (and existing plan if 'Modify' was chosen), draft a solution.
+*   Check against `project-context.md`: Are we adding allowed dependencies? Are we following the folder structure?
 
-* Compare the Issue Requirements against the Tech Stack defined in `project-context.md`.
-* Identify required changes:
-  * **Frontend:** Which components/pages need creation or modification?
-  * **Backend:** Do we need new Endpoints, DTOs, or Services?
-  * **Database:** Does the Schema change? (If yes, flag for migration).
-  * **Dependencies:** Do we need new packages? (Check if allowed).
+**Step B: Presentation**
+*   Output the **Draft Plan** in the chat using this format:
+    ```markdown
+    [DRAFT PLAN - NOT SAVED]
+    ### Architecture
+    ...
+    ### Frontend Tasks
+    - [ ] ...
+    ### Backend Tasks
+    - [ ] ...
+    ```
 
-## 3. The Planning Dialogue (Iterative Loop)
+**Step C: User Feedback**
+*   Ask: *"Does this look correct? You can ask me to **Add feature X**, **Remove step Y**, **Redo completely**, or type **SAVE** to finish."*
 
-**PROTOCOL: INTERACTIVE MODE**
-You will now enter a conversation loop with the user. Do **NOT** finalize the plan immediately.
+**Step D: Iteration**
+*   **IF User requests changes:**
+    *   Update your in-memory draft.
+    *   *Crucial:* If the user adds a feature, ensure you also add the corresponding Verification/Test step.
+    *   **GOTO Step B** (Present the new draft).
+*   **IF User says "SAVE" / "APPROVE":**
+    *   **EXIT LOOP** and proceed to Section 3.
 
-1. **Propose:** Output a "Draft Technical Plan" covering:
-    * *Proposed Architecture Changes*
-    * *List of files to create/modify*
-    * *Potential risks or edge cases*
-2. **Ask:** Ask specific clarifying questions to the user (e.g., "Should this be a modal or a new page?", "What is the validation logic for X?").
-3. **Refine:** Wait for user input. Update your mental model based on their answers.
-4. **Repeat:** Continue this loop until the user explicitly types: **"Approved"** or **"Go"**.
-5. **Do not do or start any implementation**
+## 3. Plan Finalization (Write to Disk)
+**TRIGGER:** Execute this ONLY after the user explicitly types "SAVE" or "APPROVE".
 
-## 4. Plan Finalization (Write to File)
-
-**TRIGGER:** Only execute this step after receiving User Approval.
-
-1. **Format:** Construct a structured plan using the following schema:
-
+1.  **Format:** Finalize the plan using the strict schema:
     ```markdown
     ## Technical Plan
     ### Architecture
-    [High-level summary of the approach]
+    [Summary]
 
     ### Frontend Tasks
-    - [ ] Create Component X
-    - [ ] Update Store Y
-
+    - [ ] [Task]
+    
     ### Backend Tasks
-    - [ ] Create Entity Z
-    - [ ] Add API Endpoint /api/v1/z
+    - [ ] [Task]
 
     ### Verification
-    - [ ] Manual Check: [What to click/test]
-    - [ ] Automated Tests: [Unit/Integration tests to run]
+    - [ ] [Manual/Automated Checks]
     ```
-
-2. **Append:** Append this content to the end of `.opencode/issues/issue_[issue_id].md`.
-3. **Notify:** "Plan finalized and saved. Run 'opencode run implement-issue' to start coding."
+2.  **Persist:**
+    *   Read `.opencode/issues/issue_[issue_id].md`.
+    *   **Logic:**
+        *   If `## Technical Plan` exists: **Replace** the text from that header downwards with the new plan.
+        *   If it does not exist: **Append** the plan to the end of the file.
+3.  **Notify:** "💾 Plan saved to disk. Run 'opencode run implement-issue' to start execution."

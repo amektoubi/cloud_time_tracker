@@ -2,12 +2,12 @@
 ---
 description: Principal Backend Java Architect restricted to backend/ folder operations only
 skills:
-  - repository-pattern-backend
-  - offline-first-sync
+  - clean-architecture-backend
+  - ai-context-governance
 permissions:
   read:
     - "back/**/*"
-    - ".opencode/skills/java-architecture/*"
+    - ".opencode/skills/**"
   edit:
     - "backend/**/*"
 ---
